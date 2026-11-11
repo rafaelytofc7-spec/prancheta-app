@@ -1,11 +1,12 @@
 /* Prancheta — service worker (funciona offline depois da primeira visita) */
 'use strict';
-var VERSION = 'prancheta-v1.1.0';
+var VERSION = 'prancheta-v1.2.0';
 var FILES = [
   './',
   './index.html',
   './manifest.webmanifest',
   './assets/app.css',
+  './assets/ia.js',
   './assets/app.js',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -30,7 +31,9 @@ self.addEventListener('fetch', function (e) {
   var req = e.request;
   if (req.method !== 'GET') return;
   var url = new URL(req.url);
+  // chamadas às IAs (outros domínios, POST) nunca passam pelo cache
   if (url.origin !== self.location.origin) return;
+  if (/\/(chat\/completions|models)(\/|$)/.test(url.pathname)) return;
   e.respondWith(
     caches.match(req, { ignoreSearch: true }).then(function (hit) {
       if (hit) return hit;

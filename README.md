@@ -23,6 +23,19 @@ Quando sair uma versão nova, o app avisa **Nova versão disponível**: toque em
 
 **Os dados ficam em cada aparelho/navegador.** O que você escreve no celular não aparece sozinho no PC (nem o contrário). Para levar de um para o outro, use **Dados e backup > Exportar backup (.json)** de um lado e **Importar backup...** do outro.
 
+## Assistente IA
+
+Em cada jogo há a seção **IA** (na barra de baixo do celular; no PC, no menu lateral) e, na tela inicial, o atalho **Assistente IA**. Ele conversa sobre o jogo, lê o GDD, as mecânicas, os personagens, as tarefas, as ideias e os marcos, e **propõe** mudanças (nova tarefa, mover tarefa, nova ideia, mecânica, personagem, marco ou texto no GDD). Cada proposta vira um cartão: nada muda até você tocar em **Aplicar** (e dá para **Desfazer**). A opção "Aplicar mudanças automaticamente" vem desligada.
+
+**Chave grátis do Google Gemini (recomendado):**
+1. Abra https://aistudio.google.com/apikey e entre com sua conta Google.
+2. Toque em **Criar chave de API** (Create API key) e copie a chave.
+3. Na Prancheta: **IA > Configurar IA**, provedor "Google Gemini (grátis)", cole a chave, toque em **Testar conexão** e depois em **Salvar**.
+
+Também dá para usar Groq (grátis), OpenRouter (modelos `:free`), OpenAI (pago), qualquer serviço compatível com a API da OpenAI e o **Ollama** do PC (sem chave; só funciona no computador onde o Ollama roda; aberto pelo site, rode o Ollama com `OLLAMA_ORIGINS=https://rafaelytofc7-spec.github.io`).
+
+**Privacidade:** a chave fica salva só neste aparelho e navegador. Ela não vai para o backup exportado nem para o GitHub. Ao conversar, a mensagem e os dados do jogo que a IA lê são enviados ao provedor escolhido (no plano grátis do Gemini, o Google pode usar as conversas para melhorar os produtos dele). O assistente precisa de internet (menos o Ollama). As conversas ficam salvas neste aparelho e podem ser apagadas no ícone de lixeira.
+
 ## Onde ficam os dados
 
 Tudo é salvo automaticamente no próprio navegador (armazenamento local). Os dados ficam presos àquele navegador, naquele sistema. O Windows e o Linux do dual-boot **não** compartilham os dados entre si, e Chrome e Firefox também não.

@@ -30,13 +30,18 @@
     archive: '<rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v11h14V9M10 13h4"/>', flag: '<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>',
     mais: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"/>',
     jogo: '<path d="M7 8.5h10a4.5 4.5 0 0 1 4.5 4.5v.6a3 3 0 0 1-5.3 1.9L14.7 14H9.3l-1.5 1.5a3 3 0 0 1-5.3-1.9V13A4.5 4.5 0 0 1 7 8.5Z"/><path d="M8 11.2v3M6.5 12.7h3M15.6 12.2h.01M17.8 13.6h.01"/>',
-    tarefa: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12 2.5 2.5 4.5-5"/>'
+    tarefa: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',
+    ia: '<path d="M12 3.5l1.6 4.2 4.2 1.6-4.2 1.6L12 15.1l-1.6-4.2-4.2-1.6 4.2-1.6z"/><path d="M18.5 14.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8zM5.5 15.5l.6 1.5 1.5.6-1.5.6-.6 1.5-.6-1.5L3.4 17.6l1.5-.6z"/>',
+    config: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
+    send: '<path d="M4 12 20 4l-6 16-2.5-6.5z"/><path d="M11.5 13.5 20 4"/>',
+    stop: '<rect x="6" y="6" width="12" height="12" rx="2.5"/>',
+    olho: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>'
   };
   function icon(n, cls) { return '<svg class="i ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[n] || '') + '</svg>'; }
 
   // rótulos curtos para a barra de baixo do celular
-  var SHORT = { geral: 'Geral', design: 'Design', mecanicas: 'Mecânicas', personagens: 'Personagens', mundo: 'Mundo', arte: 'Arte', tecnica: 'Técnica', producao: 'Produção', ideias: 'Ideias' };
-  var BNAV = ['geral', 'producao', 'ideias', 'design'];
+  var SHORT = { geral: 'Geral', design: 'Design', mecanicas: 'Mecânicas', personagens: 'Personagens', mundo: 'Mundo', arte: 'Arte', tecnica: 'Técnica', producao: 'Produção', ideias: 'Ideias', ia: 'IA' };
+  var BNAV = ['geral', 'producao', 'ia', 'ideias'];
   function phaseKey(ph) { return ['conceito', 'pre', 'producao', 'polimento', 'lancamento'][PHASES.indexOf(ph)] || 'conceito'; }
   function phaseBadge(ph) { return '<span class="badge phase-badge" data-phase="' + phaseKey(ph) + '"><span class="dot"></span>' + esc(ph) + '</span>'; }
   function isNarrow() { return !!(window.matchMedia && window.matchMedia('(max-width: 820px)').matches); }
@@ -44,7 +49,7 @@
   var SECTIONS = [
     ['geral', 'Visão geral'], ['design', 'Caderno de design'], ['mecanicas', 'Mecânicas'],
     ['personagens', 'Personagens e criaturas'], ['mundo', 'Mundo e níveis'], ['arte', 'Arte e áudio'],
-    ['tecnica', 'Técnica'], ['producao', 'Produção'], ['ideias', 'Caixa de ideias']
+    ['tecnica', 'Técnica'], ['producao', 'Produção'], ['ideias', 'Caixa de ideias'], ['ia', 'Assistente IA']
   ];
 
   // ---------------------------------------------------------------- utilidades
@@ -278,6 +283,8 @@
       var sec = parts[2] || 'geral';
       if (!SECTIONS.some(function (s) { return s[0] === sec; })) sec = 'geral';
       renderProject(p, sec);
+    } else if (parts[0] === 'ia' && window.PranchetaIA) {
+      renderAssistantHome();
     } else {
       renderHome();
     }
@@ -285,10 +292,24 @@
   function go(hash) { if (location.hash === hash) route(); else location.hash = hash; }
   function projHash(p, sec) { return '#/jogo/' + encodeURIComponent(p.id) + (sec ? '/' + sec : ''); }
 
+  // ---------------------------------------------------------------- assistente (tela geral, fora de um jogo)
+  function renderAssistantHome() {
+    current = { project: null, section: 'ia' };
+    document.body.dataset.view = 'ia';
+    document.body.dataset.sec = 'ia';
+    document.documentElement.style.removeProperty('--pc');
+    document.title = 'Assistente IA · Prancheta';
+    $('#crumbs').innerHTML = '<a href="#/">Todos os jogos</a><span class="sep">/</span><span class="cur">Assistente IA</span>';
+    $('#main').innerHTML = '<div class="ia-page"><section class="content ia-content" id="content">' + window.PranchetaIA.html(null) + '</section></div>';
+    window.PranchetaIA.mount($('#content'), null);
+    window.scrollTo(0, 0);
+  }
+
   // ---------------------------------------------------------------- início
   function renderHome() {
     current = { project: null, section: null };
     document.body.dataset.view = 'home';
+    document.body.dataset.sec = '';
     document.documentElement.style.removeProperty('--pc');
     document.title = 'Prancheta · Planejamento de jogos';
     $('#crumbs').innerHTML = '<span class="cur">Todos os jogos</span>';
@@ -317,6 +338,7 @@
           '</div>' +
           (archived ? '<label class="toggle"><input type="checkbox" id="showArchived"' + (ui.showArchived ? ' checked' : '') + '> Mostrar arquivados (' + archived + ')</label>' : '') +
         '</div>' +
+        (window.PranchetaIA ? '<a class="ia-banner" href="#/ia"><span class="ia-banner-ic">' + icon('ia') + '</span><span class="ia-banner-t"><b>Assistente IA</b><small>Peça ideias, revise o GDD e crie tarefas conversando.</small></span>' + icon('right') + '</a>' : '') +
         '<div id="homeGrid"></div>' +
       '</div>';
     renderGrid();
@@ -389,12 +411,14 @@
     var changed = current.project !== p.id || current.section !== sec;
     current = { project: p.id, section: sec };
     document.body.dataset.view = 'project';
+    document.body.dataset.sec = sec;
     document.documentElement.style.setProperty('--pc', p.color);
     var secName = labelOf(SECTIONS, sec);
     document.title = p.title + ' · ' + secName + ' · Prancheta';
     $('#crumbs').innerHTML = '<a href="#/">Todos os jogos</a><span class="sep">/</span><a href="' + projHash(p) + '" id="crumbTitle">' + esc(p.title) + '</a><span class="sep">/</span><span class="cur">' + esc(secName) + '</span>';
     $('#main').innerHTML = '<div class="proj"><aside class="side" aria-label="Seções do jogo">' + sideHtml(p, sec) + '</aside>' +
-      '<section class="content" id="content">' + sectionHtml(p, sec) + '</section></div>';
+      '<section class="content' + (sec === 'ia' ? ' ia-content' : '') + '" id="content">' + sectionHtml(p, sec) + '</section></div>';
+    if (sec === 'ia' && window.PranchetaIA) window.PranchetaIA.mount($('#content'), p);
     autosizeAll($('#main'));
     if (changed) window.scrollTo(0, 0);
     centerNav();
@@ -512,6 +536,7 @@
       case 'tecnica': return secTech(p);
       case 'producao': return secProduction(p);
       case 'ideias': return secIdeas(p);
+      case 'ia': return window.PranchetaIA ? window.PranchetaIA.html(p) : emptyMsg('O assistente não carregou. Recarregue a página.', 'ia');
       default: return secOverview(p);
     }
   }
@@ -909,6 +934,7 @@
   function rerender(focusSel) {
     var p = curP(); if (!p) return;
     var y = window.scrollY;
+    if (current.section === 'ia') { refreshSide(); return; }
     $('#content').innerHTML = sectionHtml(p, current.section);
     autosizeAll($('#content'));
     refreshSide();
@@ -1166,6 +1192,12 @@
 
   // ---------------------------------------------------------------- início
   load();
+  if (window.PranchetaIA) window.PranchetaIA.init({
+    state: function () { return state; }, getProject: getProject, curP: curP, current: function () { return current; },
+    touch: touch, persist: persist, refreshSide: refreshSide, toast: toast, openDialog: openDialog, confirmDialog: confirmDialog,
+    esc: esc, icon: icon, go: go, projHash: projHash, uid: uid, now: now, stats: stats, engineLabel: engineLabel,
+    moveTask: moveTask, isNarrow: isNarrow, autosize: autosize, COLS: COLS, PHASES: PHASES, MECH_STATUS: MECH_STATUS, ART_STATUS: ART_STATUS
+  });
   route();
   pendingToasts.forEach(function (m) { toast(m); });
 

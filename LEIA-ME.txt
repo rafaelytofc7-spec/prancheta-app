@@ -34,6 +34,23 @@ INSTALAR NO ANDROID (APP PELO NAVEGADOR)
   "Dados e backup" > "Exportar backup (.json)" de um lado e
   "Importar backup..." do outro.
 
+ASSISTENTE IA
+- Em cada jogo há a seção "IA" (barra de baixo no celular, menu lateral no
+  PC) e, na tela inicial, o atalho "Assistente IA".
+- Ele lê o jogo e PROPÕE mudanças (tarefas, ideias, mecânicas, personagens,
+  marcos, texto do GDD). Cada proposta vira um cartão: nada muda até você
+  tocar em "Aplicar" (e dá para "Desfazer").
+- Chave grátis do Google Gemini:
+  1. Abra https://aistudio.google.com/apikey e entre com sua conta Google.
+  2. Toque em "Criar chave de API" e copie a chave.
+  3. Na Prancheta: IA > Configurar IA > "Google Gemini (grátis)", cole a
+     chave, "Testar conexão" e "Salvar".
+- Também funciona com Groq, OpenRouter, OpenAI e o Ollama do PC (sem chave;
+  só no computador onde o Ollama roda).
+- Privacidade: a chave fica só neste aparelho/navegador e NÃO vai para o
+  backup nem para o GitHub. As mensagens e os dados do jogo que a IA lê são
+  enviados ao provedor escolhido. Precisa de internet (menos o Ollama).
+
 ONDE FICAM OS DADOS
 - Tudo é salvo automaticamente no próprio navegador (armazenamento local).
 - Os dados ficam presos àquele navegador, naquele sistema. O Windows e o
