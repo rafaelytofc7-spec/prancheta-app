@@ -17,7 +17,9 @@ A Prancheta também funciona como app no celular (PWA). Para instalar, ela preci
 2. Toque no botão **Instalar app** no topo (se aparecer) ou no menu **⋮** do Chrome > **Instalar app** / **Adicionar à tela inicial**.
 3. Pronto: o ícone da Prancheta aparece na tela inicial, abre em tela cheia e funciona **sem internet** depois da primeira abertura.
 
-No celular, as seções do jogo ficam numa barra embaixo da tela, e as tarefas do quadro mudam de coluna pelos botões de seta do cartão.
+No celular, as seções principais ficam numa barra embaixo da tela (o resto em **Mais**), o botão **+** adiciona jogo, tarefa ou ideia, e o quadro de Produção mostra uma coluna por vez (abas **A fazer / Em andamento / Feito**); as tarefas mudam de coluna pelos botões do cartão.
+
+Quando sair uma versão nova, o app avisa **Nova versão disponível**: toque em **Atualizar**.
 
 **Os dados ficam em cada aparelho/navegador.** O que você escreve no celular não aparece sozinho no PC (nem o contrário). Para levar de um para o outro, use **Dados e backup > Exportar backup (.json)** de um lado e **Importar backup...** do outro.
 

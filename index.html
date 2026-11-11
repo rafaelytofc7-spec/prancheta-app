@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#111114">
+<meta name="theme-color" content="#0f1014">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -49,6 +49,7 @@ if (/^https?:$/.test(location.protocol)) document.write('<link rel="manifest" hr
 <div class="banner" id="storageBanner" hidden></div>
 <main id="main" tabindex="-1"></main>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
+<button class="fab" id="fab" type="button" data-action="fab" aria-label="Adicionar (novo jogo, tarefa ou ideia)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <dialog id="dialog" aria-labelledby="dialogTitle"></dialog>
 <noscript><p style="padding:2rem;color:#fff">A Prancheta precisa de JavaScript ativado no navegador.</p></noscript>

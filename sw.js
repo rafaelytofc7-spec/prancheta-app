@@ -1,6 +1,6 @@
 /* Prancheta — service worker (funciona offline depois da primeira visita) */
 'use strict';
-var VERSION = 'prancheta-v1.0.0';
+var VERSION = 'prancheta-v1.1.0';
 var FILES = [
   './',
   './index.html',

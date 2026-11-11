@@ -27,9 +27,19 @@
     plus: '<path d="M12 5v14M5 12h14"/>', trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
     dots: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
     search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>', edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/>',
-    archive: '<rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v11h14V9M10 13h4"/>', flag: '<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>'
+    archive: '<rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v11h14V9M10 13h4"/>', flag: '<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>',
+    mais: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"/>',
+    jogo: '<path d="M7 8.5h10a4.5 4.5 0 0 1 4.5 4.5v.6a3 3 0 0 1-5.3 1.9L14.7 14H9.3l-1.5 1.5a3 3 0 0 1-5.3-1.9V13A4.5 4.5 0 0 1 7 8.5Z"/><path d="M8 11.2v3M6.5 12.7h3M15.6 12.2h.01M17.8 13.6h.01"/>',
+    tarefa: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12 2.5 2.5 4.5-5"/>'
   };
   function icon(n, cls) { return '<svg class="i ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[n] || '') + '</svg>'; }
+
+  // rótulos curtos para a barra de baixo do celular
+  var SHORT = { geral: 'Geral', design: 'Design', mecanicas: 'Mecânicas', personagens: 'Personagens', mundo: 'Mundo', arte: 'Arte', tecnica: 'Técnica', producao: 'Produção', ideias: 'Ideias' };
+  var BNAV = ['geral', 'producao', 'ideias', 'design'];
+  function phaseKey(ph) { return ['conceito', 'pre', 'producao', 'polimento', 'lancamento'][PHASES.indexOf(ph)] || 'conceito'; }
+  function phaseBadge(ph) { return '<span class="badge phase-badge" data-phase="' + phaseKey(ph) + '"><span class="dot"></span>' + esc(ph) + '</span>'; }
+  function isNarrow() { return !!(window.matchMedia && window.matchMedia('(max-width: 820px)').matches); }
 
   var SECTIONS = [
     ['geral', 'Visão geral'], ['design', 'Caderno de design'], ['mecanicas', 'Mecânicas'],
@@ -199,7 +209,7 @@
   // ---------------------------------------------------------------- estado
   var state = { version: 1, projects: [] };
   var storageOk = true;
-  var ui = { search: '', phase: '', showArchived: false, mechFilter: '', assetFilter: '' };
+  var ui = { search: '', phase: '', showArchived: false, mechFilter: '', assetFilter: '', kanbanCol: 'todo' };
   var pendingToasts = [];
 
   function load() {
@@ -278,17 +288,26 @@
   // ---------------------------------------------------------------- início
   function renderHome() {
     current = { project: null, section: null };
+    document.body.dataset.view = 'home';
     document.documentElement.style.removeProperty('--pc');
     document.title = 'Prancheta · Planejamento de jogos';
     $('#crumbs').innerHTML = '<span class="cur">Todos os jogos</span>';
     var archived = state.projects.filter(function (p) { return p.archived; }).length;
+    var active = state.projects.filter(function (p) { return !p.archived; });
+    var open = 0, ideasN = 0;
+    active.forEach(function (p) { var s = stats(p); open += s.total - s.done; ideasN += p.ideas.length; });
     $('#main').innerHTML =
       '<div class="home">' +
         '<section class="hero">' +
           '<div><h1>Seus jogos, <em>antes</em> do código.</h1>' +
           '<p>Ideia, design, arte, técnica e produção de cada projeto num lugar só. Tudo fica salvo automaticamente neste navegador.</p></div>' +
-          '<button class="btn primary" data-action="new-project">' + icon('plus') + 'Novo jogo</button>' +
+          '<button class="btn primary hero-new" data-action="new-project">' + icon('plus') + 'Novo jogo</button>' +
         '</section>' +
+        (state.projects.length ? '<div class="home-stats" aria-label="Resumo">' +
+          '<div class="stat"><b>' + active.length + '</b><span>' + (active.length === 1 ? 'jogo ativo' : 'jogos ativos') + '</span></div>' +
+          '<div class="stat"><b>' + open + '</b><span>' + (open === 1 ? 'tarefa aberta' : 'tarefas abertas') + '</span></div>' +
+          '<div class="stat"><b>' + ideasN + '</b><span>' + (ideasN === 1 ? 'ideia na caixa' : 'ideias na caixa') + '</span></div>' +
+        '</div>' : '') +
         '<div class="toolbar">' +
           '<div class="search">' + icon('search') +
             '<input class="input" id="search" type="search" placeholder="Buscar por nome, gênero ou motor   ( / )" aria-label="Buscar jogos" value="' + esc(ui.search) + '"></div>' +
@@ -317,12 +336,12 @@
 
     var g = $('#homeGrid');
     if (!state.projects.length) {
-      g.innerHTML = '<div class="empty-state"><h3>Nenhum jogo ainda</h3><p>Comece um projeto do zero ou restaure os exemplos no menu “Dados e backup”.</p>' +
+      g.innerHTML = '<div class="empty-state"><span class="empty-ic">' + icon('jogo') + '</span><h3>Nenhum jogo ainda</h3><p>Comece um projeto do zero ou restaure os exemplos no menu “Dados e backup”.</p>' +
         '<button class="btn primary" data-action="new-project">' + icon('plus') + 'Criar meu primeiro jogo</button></div>';
       return;
     }
     if (!list.length) {
-      g.innerHTML = '<div class="empty-state"><h3>Nada encontrado</h3><p>Nenhum jogo corresponde à busca ou ao filtro.</p><button class="btn" data-action="clear-filters">Limpar filtros</button></div>';
+      g.innerHTML = '<div class="empty-state"><span class="empty-ic">' + icon('search') + '</span><h3>Nada encontrado</h3><p>Nenhum jogo corresponde à busca ou ao filtro.</p><button class="btn" data-action="clear-filters">Limpar filtros</button></div>';
       return;
     }
     g.innerHTML = '<div class="grid">' + list.map(cardHtml).join('') +
@@ -333,7 +352,8 @@
     var s = stats(p);
     return '<article class="card' + (p.archived ? ' archived' : '') + '" style="--c:' + esc(p.color) + '">' +
       '<a class="card-open" href="' + projHash(p) + '" aria-label="Abrir ' + esc(p.title) + '"></a>' +
-      '<div class="card-head"><h2>' + esc(p.title) + (p.version ? ' <span class="hint" style="font-size:14px">' + esc(p.version) + '</span>' : '') + '</h2>' +
+      '<div class="card-cover"><span class="cover-mark" aria-hidden="true">' + esc(initials(p.title)) + '</span>' +
+        '<div class="card-head"><h2>' + esc(p.title) + (p.version ? ' <span class="ver">' + esc(p.version) + '</span>' : '') + '</h2>' +
         '<div class="card-menu menu-wrap"><button class="icon-btn" data-action="card-menu" aria-haspopup="true" aria-expanded="false" aria-label="Ações de ' + esc(p.title) + '">' + icon('dots') + '</button>' +
           '<div class="menu" role="menu" hidden>' +
             '<button role="menuitem" data-action="open" data-id="' + esc(p.id) + '">Abrir</button>' +
@@ -341,18 +361,25 @@
             '<button role="menuitem" data-action="archive" data-id="' + esc(p.id) + '">' + (p.archived ? 'Desarquivar' : 'Arquivar') + '</button>' +
             '<hr><button role="menuitem" class="danger" data-action="delete" data-id="' + esc(p.id) + '">Excluir…</button>' +
           '</div></div>' +
+        '</div>' +
+        '<div class="meta">' + phaseBadge(p.phase) +
+          '<span class="tag">' + esc(engineLabel(p)) + '</span>' +
+          (p.genre ? '<span class="tag">' + esc(p.genre) + '</span>' : '') +
+          (p.archived ? '<span class="tag">Arquivado</span>' : '') +
+        '</div>' +
       '</div>' +
-      '<p class="logline' + (p.logline ? '' : ' empty') + '">' + esc(p.logline || 'Sem pitch ainda. Abra o jogo e escreva a ideia em uma frase.') + '</p>' +
-      '<div class="meta">' +
-        '<span class="tag phase"><span class="dot"></span>' + esc(p.phase) + '</span>' +
-        (p.genre ? '<span class="tag">' + esc(p.genre) + '</span>' : '') +
-        '<span class="tag">' + esc(engineLabel(p)) + '</span>' +
-        (p.archived ? '<span class="tag">Arquivado</span>' : '') +
-      '</div>' +
-      '<div class="card-foot">' +
-        '<div class="prog-row"><span>Progresso</span><span><b>' + s.pct + '%</b> · ' + s.done + '/' + s.total + ' tarefas</span></div>' +
-        '<div class="progress" role="progressbar" aria-label="Progresso de ' + esc(p.title) + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + s.pct + '"><span style="width:' + s.pct + '%"></span></div>' +
-        '<div class="prog-row"><span>' + plural(p.ideas.length, 'ideia', 'ideias') + ' na caixa</span><span>Editado ' + esc(fmtRelative(p.updatedAt)) + '</span></div>' +
+      '<div class="card-body">' +
+        '<p class="logline' + (p.logline ? '' : ' empty') + '">' + esc(p.logline || 'Sem pitch ainda. Abra o jogo e escreva a ideia em uma frase.') + '</p>' +
+        '<div class="card-stats">' +
+          '<span><b>' + p.mechanics.length + '</b>' + (p.mechanics.length === 1 ? 'mecânica' : 'mecânicas') + '</span>' +
+          '<span><b>' + p.characters.length + '</b>' + (p.characters.length === 1 ? 'personagem' : 'personagens') + '</span>' +
+          '<span><b>' + p.ideas.length + '</b>' + (p.ideas.length === 1 ? 'ideia' : 'ideias') + '</span>' +
+        '</div>' +
+        '<div class="card-foot">' +
+          '<div class="prog-row"><span>Progresso</span><span><b>' + s.pct + '%</b> · ' + s.done + '/' + s.total + ' tarefas</span></div>' +
+          '<div class="progress" role="progressbar" aria-label="Progresso de ' + esc(p.title) + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + s.pct + '"><span style="width:' + s.pct + '%"></span></div>' +
+          '<div class="prog-row"><span>Editado ' + esc(fmtRelative(p.updatedAt)) + '</span></div>' +
+        '</div>' +
       '</div>' +
     '</article>';
   }
@@ -361,6 +388,7 @@
   function renderProject(p, sec) {
     var changed = current.project !== p.id || current.section !== sec;
     current = { project: p.id, section: sec };
+    document.body.dataset.view = 'project';
     document.documentElement.style.setProperty('--pc', p.color);
     var secName = labelOf(SECTIONS, sec);
     document.title = p.title + ' · ' + secName + ' · Prancheta';
@@ -387,17 +415,57 @@
 
   function sideHtml(p, sec) {
     var s = stats(p), c = counts(p);
+    var inBar = BNAV.indexOf(sec) >= 0;
     return '<div class="side-head">' +
-        '<a class="back" href="#/">' + icon('back') + 'Todos os jogos</a>' +
+        '<a class="back" href="#/" aria-label="Todos os jogos">' + icon('back') + '<span>Todos os jogos</span></a>' +
         '<div class="side-title"><div class="ring" style="--p:' + s.pct + '" title="' + s.pct + '% das tarefas feitas"><span>' + s.pct + '%</span></div>' +
-        '<div><h2 id="sideTitle">' + esc(p.title) + '</h2><small>' + esc(p.phase) + ' · ' + esc(engineLabel(p)) + '</small></div></div>' +
+        '<div class="side-name"><h2 id="sideTitle">' + esc(p.title) + '</h2><small>' + phaseBadge(p.phase) + '<span class="eng">' + esc(engineLabel(p)) + '</span></small></div></div>' +
       '</div>' +
       '<nav class="nav" aria-label="Seções">' + SECTIONS.map(function (x) {
         var n = c[x[0]];
         return '<a href="' + projHash(p, x[0]) + '"' + (x[0] === sec ? ' aria-current="page"' : '') + '>' + icon(x[0]) + '<span>' + esc(x[1]) + '</span>' +
           (n ? '<span class="count" title="' + (x[0] === 'producao' ? 'tarefas abertas' : 'itens') + '">' + n + '</span>' : '') + '</a>';
       }).join('') + '</nav>' +
+      '<nav class="bnav" aria-label="Seções do jogo">' + BNAV.map(function (k) {
+        var n = k === 'producao' || k === 'ideias' ? c[k] : 0;
+        return '<a href="' + projHash(p, k) + '"' + (k === sec ? ' aria-current="page"' : '') + '><span class="bn-ic">' + icon(k) + (n ? '<span class="bn-count">' + n + '</span>' : '') + '</span><span class="bn-l">' + esc(SHORT[k]) + '</span></a>';
+      }).join('') +
+        '<button type="button" data-action="more-sections" aria-haspopup="dialog"' + (inBar ? '' : ' aria-current="page"') + '><span class="bn-ic">' + icon(inBar ? 'mais' : sec) + '</span><span class="bn-l">' + esc(inBar ? 'Mais' : SHORT[sec]) + '</span></button>' +
+      '</nav>' +
       '<div class="side-foot">Tudo é salvo automaticamente.<br>Faça backup em “Dados e backup”.</div>';
+  }
+
+  function moreSections(p) {
+    var c = counts(p);
+    openDialog('<div class="dlg sheet"><h2 id="dialogTitle">Seções do jogo</h2><div class="sheet-grid">' + SECTIONS.map(function (x) {
+      var n = c[x[0]];
+      return '<button class="sheet-tile" data-dlg="sec:' + x[0] + '"' + (x[0] === current.section ? ' aria-current="page"' : '') + '>' + icon(x[0]) + '<span>' + esc(x[1]) + '</span>' + (n ? '<small>' + n + '</small>' : '') + '</button>';
+    }).join('') + '</div><div class="dlg-actions"><button class="btn ghost" data-dlg="cancel">Fechar</button></div></div>')
+      .then(function (r) { if (r && r.action && r.action.indexOf('sec:') === 0) go(projHash(p, r.action.slice(4))); });
+  }
+
+  // botão flutuante (+) do celular
+  function quickAdd() {
+    var p = curP();
+    if (!p) { newProject(); return; }
+    openDialog('<div class="dlg sheet"><h2 id="dialogTitle">Adicionar em “' + esc(p.title) + '”</h2><div class="sheet-list">' +
+      '<button class="sheet-item" data-dlg="task">' + icon('tarefa') + '<span><b>Nova tarefa</b><small>Entra em “A fazer”, na Produção</small></span></button>' +
+      '<button class="sheet-item" data-dlg="idea">' + icon('ideias') + '<span><b>Nova ideia</b><small>Vai para a Caixa de ideias</small></span></button>' +
+      '<button class="sheet-item" data-dlg="game">' + icon('jogo') + '<span><b>Novo jogo</b><small>Começar outro projeto do zero</small></span></button>' +
+      '</div><div class="dlg-actions"><button class="btn ghost" data-dlg="cancel">Cancelar</button></div></div>')
+      .then(function (r) {
+        if (!r || !r.action) return;
+        if (r.action === 'game') { newProject(); return; }
+        var isTask = r.action === 'task';
+        promptDialog(isTask ? 'Nova tarefa' : 'Nova ideia', isTask ? 'Tarefa' : 'Ideia', '', isTask ? 'Adicionar tarefa' : 'Guardar ideia').then(function (v) {
+          if (!v) return;
+          addItem(p, isTask ? 'tasks' : 'ideas', v, null);
+          var sec = isTask ? 'producao' : 'ideias';
+          if (isTask) ui.kanbanCol = 'todo';
+          if (current.section === sec) { rerender(); toast(isTask ? 'Tarefa adicionada.' : 'Ideia guardada.'); }
+          else { refreshSide(); toast(isTask ? 'Tarefa adicionada em “A fazer”.' : 'Ideia guardada.', 'Ver', function () { go(projHash(p, sec)); }); }
+        });
+      });
   }
 
   function refreshSide() {
@@ -517,7 +585,7 @@
   function adder(kind, placeholder, btn) {
     return '<form class="adder" data-add="' + kind + '"><input class="input" name="name" placeholder="' + esc(placeholder) + '" aria-label="' + esc(placeholder) + '" autocomplete="off"><button class="btn primary" type="submit">' + icon('plus') + esc(btn) + '</button></form>';
   }
-  function emptyMsg(t) { return '<div class="empty-state" style="padding:36px 20px"><p style="margin:0">' + esc(t) + '</p></div>'; }
+  function emptyMsg(t, ic) { return '<div class="empty-state compact">' + (ic ? '<span class="empty-ic">' + icon(ic) + '</span>' : '') + '<p>' + esc(t) + '</p></div>'; }
 
   function secMechanics(p) {
     var items = p.mechanics.filter(function (m) { return !ui.mechFilter || m.status === ui.mechFilter; });
@@ -531,7 +599,7 @@
           '<button class="icon-btn del" data-action="del-item" aria-label="Excluir mecânica ' + esc(m.name) + '">' + icon('trash') + '</button></div>' +
           '<textarea class="textarea desc" data-field="desc" rows="1" aria-label="Descrição" placeholder="Descrição curta: como funciona e por que existe.">' + esc(m.desc) + '</textarea>' +
         '</div>';
-      }).join('') : emptyMsg(p.mechanics.length ? 'Nenhuma mecânica neste estado.' : 'Nenhuma mecânica ainda. Adicione a primeira acima ou promova uma ideia da caixa de ideias.')) + '</div>';
+      }).join('') : emptyMsg(p.mechanics.length ? 'Nenhuma mecânica neste estado.' : 'Nenhuma mecânica ainda. Adicione a primeira acima ou promova uma ideia da caixa de ideias.', 'mecanicas')) + '</div>';
   }
 
   function secCharacters(p) {
@@ -546,7 +614,7 @@
           '<label class="field"><span class="label">Habilidades e comportamento</span><textarea class="textarea" data-field="abilities" rows="2" placeholder="O que faz, como ataca, como reage…">' + esc(c.abilities) + '</textarea></label>' +
           '<div class="char-foot"><span class="label">Estado da arte</span><select class="select status" data-field="artStatus" data-v="' + esc(c.artStatus) + '" aria-label="Estado da arte">' + options(ART_STATUS, c.artStatus) + '</select></div>' +
         '</div>';
-      }).join('') + '</div>' : emptyMsg('Nenhum personagem ainda. Adicione o protagonista, inimigos e criaturas.'));
+      }).join('') + '</div>' : emptyMsg('Nenhum personagem ainda. Adicione o protagonista, inimigos e criaturas.', 'personagens'));
   }
 
   function secWorld(p) {
@@ -559,7 +627,7 @@
           '<button class="icon-btn del" data-action="del-item" aria-label="Excluir ' + esc(l.name) + '">' + icon('trash') + '</button></div>' +
           '<textarea class="textarea desc" data-field="purpose" rows="1" aria-label="Função na jogabilidade" placeholder="Função na jogabilidade: o que o jogador aprende, enfrenta ou encontra aqui.">' + esc(l.purpose) + '</textarea>' +
         '</div>';
-      }).join('') : emptyMsg('Nenhum mapa ou nível ainda.')) + '</div>';
+      }).join('') : emptyMsg('Nenhum mapa ou nível ainda.', 'mundo')) + '</div>';
   }
 
   function secArt(p) {
@@ -585,7 +653,7 @@
             '<td><select class="select" data-field="type" aria-label="Tipo">' + options(ASSET_TYPES, a.type) + '</select></td>' +
             '<td><select class="select status" data-field="status" data-v="' + esc(a.status) + '" aria-label="Estado">' + options(ART_STATUS, a.status) + '</select></td>' +
             '<td><button class="icon-btn del" data-action="del-item" aria-label="Excluir asset ' + esc(a.name) + '">' + icon('trash') + '</button></td></tr>';
-        }).join('') + '</tbody></table></div>' : emptyMsg(p.assets.length ? 'Nenhum asset neste estado.' : 'Nenhum asset listado ainda.'));
+        }).join('') + '</tbody></table></div>' : emptyMsg(p.assets.length ? 'Nenhum asset neste estado.' : 'Nenhum asset listado ainda.', 'arte'));
   }
 
   function secTech(p) {
@@ -605,7 +673,7 @@
   function secProduction(p) {
     var s = stats(p);
     var ms = p.milestones.slice().sort(function (a, b) { return ((a.done ? 1 : 0) - (b.done ? 1 : 0)) || ((a.due || '9999') < (b.due || '9999') ? -1 : (a.due || '9999') > (b.due || '9999') ? 1 : 0); });
-    return head('Produção', 'Tarefas e marcos', 'Arraste os cartões entre colunas ou use as setas. Clique numa tarefa para editar.',
+    return head('Produção', 'Tarefas e marcos', 'Arraste os cartões entre colunas ou use as setas. Toque ou clique numa tarefa para editar.',
         '<div class="summary"><span><b style="color:var(--text)">' + s.pct + '%</b> concluído</span><span>' + s.done + '/' + s.total + ' tarefas</span></div>') +
       '<div class="sec-head" style="margin-bottom:12px;align-items:center"><h2 style="font:700 20px var(--display);margin:0;display:flex;gap:8px;align-items:center">' + icon('flag') + 'Marcos</h2>' +
         '<form class="adder" data-add="milestones" style="margin:0;flex:1;max-width:560px"><input class="input" name="name" placeholder="Novo marco (ex.: demo jogável)" aria-label="Novo marco" autocomplete="off"><input class="input" type="date" name="due" aria-label="Prazo do marco (opcional)" style="max-width:165px"><button class="btn" type="submit">' + icon('plus') + 'Marco</button></form></div>' +
@@ -619,11 +687,16 @@
           '<span class="due' + (!m.done && n !== null ? (n < 0 ? ' late' : n <= 7 ? ' soon' : '') : '') + '">' + (m.due ? esc(dueLabel(m.due)) : 'sem prazo') + '</span></div>' +
           (linked.length ? '<div class="progress" style="--c:var(--pc)"><span style="width:' + Math.round(ld / linked.length * 100) + '%"></span></div><span class="due">' + ld + '/' + linked.length + ' tarefas ligadas feitas</span>' : '<span class="due">Ligue tarefas a este marco pelo editor da tarefa.</span>') +
         '</div>';
-      }).join('') + '</div>' : '<p class="hint" style="margin:0 0 28px">Nenhum marco ainda. Marcos são metas maiores, como “protótipo jogável” ou “demo”, com prazo opcional.</p>') +
-      '<div class="board">' + COLS.map(function (c) {
+      }).join('') + '</div>' : '<p class="hint ms-empty">Nenhum marco ainda. Marcos são metas maiores, como “protótipo jogável” ou “demo”, com prazo opcional.</p>') +
+      '<div class="board-tabs" role="group" aria-label="Coluna do quadro">' + COLS.map(function (c) {
+        var n = p.tasks.filter(function (t) { return t.col === c[0]; }).length;
+        return '<button type="button" data-action="kanban-tab" data-v="' + c[0] + '" data-col-tab="' + c[0] + '" aria-pressed="' + (ui.kanbanCol === c[0]) + '"><span class="dot"></span>' + esc(c[1]) + '<span class="count">' + n + '</span></button>';
+      }).join('') + '</div>' +
+      '<div class="board" data-active="' + esc(ui.kanbanCol) + '">' + COLS.map(function (c) {
         var tasks = p.tasks.filter(function (t) { return t.col === c[0]; });
         return '<section class="col" data-col="' + c[0] + '" aria-label="' + esc(c[1]) + '">' +
           '<div class="col-head"><span class="dot"></span>' + esc(c[1]) + '<span class="count">' + tasks.length + '</span></div>' +
+          (tasks.length ? '' : '<p class="col-empty">' + (c[0] === 'done' ? 'Nada concluído ainda.' : c[0] === 'doing' ? 'Nada em andamento.' : 'Sem tarefas aqui.') + '</p>') +
           tasks.map(function (t) { return taskHtml(p, t); }).join('') +
           '<form class="col-add" data-add="tasks" data-col="' + c[0] + '"><input class="input" name="name" placeholder="+ Adicionar tarefa" aria-label="Nova tarefa em ' + esc(c[1]) + '" autocomplete="off"></form>' +
         '</section>';
@@ -639,8 +712,8 @@
         ((m || t.notes) ? '<div class="task-meta">' + (m ? '<span class="tag">' + icon('flag') + esc(m.title) + '</span>' : '') + (t.notes ? '<span class="tag">com notas</span>' : '') + '</div>' : '') +
       '</div>' +
       '<div class="task-move">' +
-        (ci > 0 ? '<button class="icon-btn" data-action="move-task" data-dir="-1" aria-label="Mover para ' + esc(COLS[ci - 1][1]) + '">' + icon('left') + '</button>' : '') +
-        (ci < 2 ? '<button class="icon-btn" data-action="move-task" data-dir="1" aria-label="Mover para ' + esc(COLS[ci + 1][1]) + '">' + icon('right') + '</button>' : '') +
+        (ci > 0 ? '<button class="icon-btn mv" data-action="move-task" data-dir="-1" aria-label="Mover para ' + esc(COLS[ci - 1][1]) + '">' + icon('left') + '<span class="mv-l" aria-hidden="true">' + esc(COLS[ci - 1][1]) + '</span></button>' : '') +
+        (ci < 2 ? '<button class="icon-btn mv fwd" data-action="move-task" data-dir="1" aria-label="Mover para ' + esc(COLS[ci + 1][1]) + '"><span class="mv-l" aria-hidden="true">' + esc(COLS[ci + 1][1]) + '</span>' + icon('right') + '</button>' : '') +
       '</div></article>';
   }
 
@@ -658,7 +731,7 @@
             '<button class="btn sm" data-action="promote" data-to="mechanic">Virar mecânica</button>' +
             '<button class="icon-btn del" data-action="del-item" aria-label="Excluir ideia">' + icon('trash') + '</button></div>' +
         '</div>';
-      }).join('') + '</div>' : '<div style="margin-top:22px">' + emptyMsg('A caixa está vazia. Qualquer ideia vale, até as estranhas.') + '</div>');
+      }).join('') + '</div>' : '<div style="margin-top:22px">' + emptyMsg('A caixa está vazia. Qualquer ideia vale, até as estranhas.', 'ideias') + '</div>');
   }
 
   // ---------------------------------------------------------------- textarea automática
@@ -712,12 +785,12 @@
   }
 
   // ---------------------------------------------------------------- avisos
-  function toast(msg, actionLabel, action) {
+  function toast(msg, actionLabel, action, ms) {
     var t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status');
     t.innerHTML = '<span>' + esc(msg) + '</span>' + (actionLabel ? '<button type="button">' + esc(actionLabel) + '</button>' : '');
     if (actionLabel) t.querySelector('button').onclick = function () { action(); t.remove(); };
     $('#toasts').appendChild(t);
-    setTimeout(function () { t.style.transition = 'opacity .3s'; t.style.opacity = '0'; setTimeout(function () { t.remove(); }, 300); }, actionLabel ? 7000 : 3200);
+    setTimeout(function () { t.classList.add('out'); setTimeout(function () { t.remove(); }, 260); }, ms || (actionLabel ? 7000 : 3200));
   }
 
   // ---------------------------------------------------------------- ações de projeto
@@ -852,8 +925,8 @@
       '<div class="cols-2"><div class="field"><label class="label" for="tkC">Coluna</label><select class="select" id="tkC" name="col">' + options(COLS, t.col) + '</select></div>' +
       '<div class="field"><label class="label" for="tkM">Marco</label><select class="select" id="tkM" name="milestoneId"><option value="">Nenhum</option>' +
         p.milestones.map(function (m) { return '<option value="' + esc(m.id) + '"' + (m.id === t.milestoneId ? ' selected' : '') + '>' + esc(m.title) + '</option>'; }).join('') + '</select></div></div>' +
-      '<div class="dlg-actions" style="justify-content:space-between"><button class="btn danger" data-dlg="delete">' + icon('trash') + 'Excluir</button>' +
-      '<span style="display:flex;gap:8px"><button class="btn ghost" data-dlg="cancel">Cancelar</button><button class="btn primary" data-dlg="ok">Salvar</button></span></div></div>',
+      '<div class="dlg-actions split"><button class="btn danger" data-dlg="delete">' + icon('trash') + 'Excluir</button>' +
+      '<span class="dlg-main"><button class="btn ghost" data-dlg="cancel">Cancelar</button><button class="btn primary" data-dlg="ok">Salvar</button></span></div></div>',
       function (d) { var x = $('#tkN', d); autosize(x); x.addEventListener('input', function () { autosize(x); }); })
       .then(function (r) {
         if (!r) return;
@@ -903,6 +976,7 @@
       renderGrid(); return;
     }
     var a = el.dataset.action, p = el.dataset.id ? getProject(el.dataset.id) : curP();
+    if (a === 'fab') { quickAdd(); return; }
     var itemEl = el.closest('[data-list]');
     switch (a) {
       case 'new-project': newProject(); break;
@@ -966,10 +1040,17 @@
         var ci = COLS.map(function (c) { return c[0]; }).indexOf(tk.col) + Number(el.dataset.dir);
         if (ci < 0 || ci > 2) break;
         moveTask(p, tk, COLS[ci][0]);
-        rerender('[data-task="' + tk.id + '"] [data-action=move-task]');
+        if (isNarrow()) {
+          rerender('[data-action=kanban-tab][aria-pressed=true]');
+          var dest = COLS[ci];
+          toast('Movida para “' + dest[1] + '”.', 'Ver', function () { ui.kanbanCol = dest[0]; rerender(); });
+        } else rerender('[data-task="' + tk.id + '"] [data-action=move-task]');
         break;
       }
       case 'edit-task': editTask(p, findTask(p, el)); break;
+      case 'kanban-tab': ui.kanbanCol = el.dataset.v; rerender('[data-action=kanban-tab][aria-pressed=true]'); break;
+      case 'more-sections': moreSections(p); break;
+      case 'fab': quickAdd(); break;
     }
   });
 
@@ -1114,7 +1195,16 @@
   syncInstallBtn();
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function () { /* sem offline, segue normal */ });
+      navigator.serviceWorker.register('sw.js').then(function (reg) {
+        document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') reg.update().catch(function () {}); });
+      }).catch(function () { /* sem offline, segue normal */ });
+    });
+    // quando uma versão nova do app assume, avisa e oferece recarregar
+    var hadController = !!navigator.serviceWorker.controller, reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!hadController) { hadController = true; return; }
+      if (reloading) return;
+      toast('Nova versão disponível.', 'Atualizar', function () { reloading = true; location.reload(); }, 30000);
     });
   }
 

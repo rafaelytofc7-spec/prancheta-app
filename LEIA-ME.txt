@@ -23,8 +23,12 @@ INSTALAR NO ANDROID (APP PELO NAVEGADOR)
   do Chrome > "Instalar app" / "Adicionar à tela inicial".
 - O ícone aparece na tela inicial, abre em tela cheia e funciona sem
   internet depois da primeira abertura.
-- No celular, as seções ficam numa barra embaixo da tela, e as tarefas do
-  quadro mudam de coluna pelos botões de seta do cartão.
+- No celular, as seções principais ficam numa barra embaixo da tela (o
+  resto em "Mais"), o botão "+" adiciona jogo, tarefa ou ideia, e o quadro
+  de Produção mostra uma coluna por vez (abas A fazer / Em andamento /
+  Feito). As tarefas mudam de coluna pelos botões do cartão.
+- Quando sair uma versão nova, o app avisa "Nova versão disponível":
+  toque em "Atualizar".
 - Os dados ficam em CADA aparelho/navegador: o que está no celular não
   aparece sozinho no PC. Para levar de um para o outro, use
   "Dados e backup" > "Exportar backup (.json)" de um lado e
