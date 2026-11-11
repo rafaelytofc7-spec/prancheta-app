@@ -31,6 +31,7 @@ if (/^https?:$/.test(location.protocol)) document.write('<link rel="manifest" hr
       <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
       <span>Instalar app</span>
     </button>
+    <button class="sync-chip" id="syncChip" type="button" data-action="sync" hidden aria-label="Sincronização com GitHub"></button>
     <div class="menu-wrap">
       <button class="btn ghost" id="dataMenuBtn" aria-label="Dados e backup" aria-haspopup="true" aria-expanded="false" aria-controls="dataMenu">
         <svg class="i" viewBox="0 0 24 24"><path d="M4 7c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3Zm0 0v10c0 1.7 3.6 3 8 3s8-1.3 8-3V7M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>
@@ -39,6 +40,9 @@ if (/^https?:$/.test(location.protocol)) document.write('<link rel="manifest" hr
       <div class="menu" id="dataMenu" role="menu" hidden>
         <button role="menuitem" data-action="export">Exportar backup (.json)</button>
         <button role="menuitem" data-action="import">Importar backup…</button>
+        <hr>
+        <button role="menuitem" data-action="sync">Sincronizar com GitHub…</button>
+        <button role="menuitem" data-action="grok">Falar com o Grok Bot…</button>
         <hr>
         <button role="menuitem" data-action="restore-samples">Restaurar jogos de exemplo…</button>
         <button role="menuitem" class="danger" data-action="wipe">Apagar todos os dados…</button>
@@ -54,6 +58,7 @@ if (/^https?:$/.test(location.protocol)) document.write('<link rel="manifest" hr
 <dialog id="dialog" aria-labelledby="dialogTitle"></dialog>
 <noscript><p style="padding:2rem;color:#fff">A Prancheta precisa de JavaScript ativado no navegador.</p></noscript>
 <script src="assets/ia.js"></script>
+<script src="assets/sync.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>

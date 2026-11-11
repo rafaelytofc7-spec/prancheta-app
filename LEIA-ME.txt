@@ -37,19 +37,36 @@ INSTALAR NO ANDROID (APP PELO NAVEGADOR)
 ASSISTENTE IA
 - Em cada jogo há a seção "IA" (barra de baixo no celular, menu lateral no
   PC) e, na tela inicial, o atalho "Assistente IA".
-- Ele lê o jogo e PROPÕE mudanças (tarefas, ideias, mecânicas, personagens,
-  marcos, texto do GDD). Cada proposta vira um cartão: nada muda até você
-  tocar em "Aplicar" (e dá para "Desfazer").
-- Chave grátis do Google Gemini:
-  1. Abra https://aistudio.google.com/apikey e entre com sua conta Google.
-  2. Toque em "Criar chave de API" e copie a chave.
-  3. Na Prancheta: IA > Configurar IA > "Google Gemini (grátis)", cole a
-     chave, "Testar conexão" e "Salvar".
-- Também funciona com Groq, OpenRouter, OpenAI e o Ollama do PC (sem chave;
-  só no computador onde o Ollama roda).
+- Na primeira vez abre o "Conectar IA" (3 passos): escolha o provedor
+  (Google Gemini é o recomendado e grátis), toque em "Abrir Google AI
+  Studio", crie a chave e toque em "Colar". O app reconhece o provedor pela
+  chave (AIza = Gemini, gsk_ = Groq, sk-or- = OpenRouter, sk- = OpenAI,
+  hf_ = Hugging Face), testa sozinho, escolhe o modelo e mostra
+  "Conectado" no topo.
+- A assinatura do app Gemini não inclui API; a chave do AI Studio é
+  separada e tem uso grátis (mesma conta Google).
+- Também funciona com Groq, OpenRouter, Hugging Face (precisa de créditos),
+  OpenAI e o Ollama do PC (sem chave; só no computador onde o Ollama roda).
+- Modo agente: diga um objetivo (ex.: "Planeje a pré-produção do Zona
+  Zero"). Ele lê o jogo, planeja em até 8 passos e entrega um lote de
+  mudanças com caixas de seleção: "Aplicar selecionados" (dá para
+  "Desfazer"). Ele nunca apaga nada.
 - Privacidade: a chave fica só neste aparelho/navegador e NÃO vai para o
   backup nem para o GitHub. As mensagens e os dados do jogo que a IA lê são
   enviados ao provedor escolhido. Precisa de internet (menos o Ollama).
+
+SINCRONIZAR COM GITHUB E GROK BOT
+- "Dados e backup" > "Sincronizar com GitHub..." guarda os jogos no
+  repositório PRIVADO rafaelytofc7-spec/prancheta-dados
+  (arquivo dados/prancheta.json).
+- Crie um token em https://github.com/settings/personal-access-tokens/new
+  com acesso só ao repositório prancheta-dados e "Contents: Read and
+  write". Cole no app e toque em "Conectar e sincronizar".
+- O app baixa ao abrir e envia sozinho depois de cada mudança (ou "Enviar
+  agora" / "Baixar agora"). Se o mesmo jogo mudar nos dois lados, fica o
+  mais recente e o app avisa. O token fica só no aparelho.
+- "Falar com o Grok Bot" copia um pedido pronto para colar na conversa com
+  o Grok Bot; ele edita o arquivo no GitHub e o app traz as mudanças.
 
 ONDE FICAM OS DADOS
 - Tudo é salvo automaticamente no próprio navegador (armazenamento local).

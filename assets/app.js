@@ -35,6 +35,8 @@
     config: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
     send: '<path d="M4 12 20 4l-6 16-2.5-6.5z"/><path d="M11.5 13.5 20 4"/>',
     stop: '<rect x="6" y="6" width="12" height="12" rx="2.5"/>',
+    grok: '<path d="M4 5.5h16v10H9l-5 4z"/><path d="M9 9.5h6M9 12.5h3.5"/>',
+    sync: '<path d="M20 7a8 8 0 0 0-14.6-1.5M4 3v4h4"/><path d="M4 17a8 8 0 0 0 14.6 1.5M20 21v-4h-4"/>',
     olho: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>'
   };
   function icon(n, cls) { return '<svg class="i ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[n] || '') + '</svg>'; }
@@ -249,6 +251,7 @@
       storageOk = true;
       if (el) { el.textContent = 'Salvo neste navegador'; el.className = 'save-state'; }
       $('#storageBanner').hidden = true;
+      if (window.PranchetaSync) window.PranchetaSync.changed();
     } catch (e) {
       storageOk = false;
       if (el) { el.textContent = 'Não foi possível salvar'; el.className = 'save-state error'; }
@@ -464,8 +467,17 @@
     openDialog('<div class="dlg sheet"><h2 id="dialogTitle">Seções do jogo</h2><div class="sheet-grid">' + SECTIONS.map(function (x) {
       var n = c[x[0]];
       return '<button class="sheet-tile" data-dlg="sec:' + x[0] + '"' + (x[0] === current.section ? ' aria-current="page"' : '') + '>' + icon(x[0]) + '<span>' + esc(x[1]) + '</span>' + (n ? '<small>' + n + '</small>' : '') + '</button>';
-    }).join('') + '</div><div class="dlg-actions"><button class="btn ghost" data-dlg="cancel">Fechar</button></div></div>')
-      .then(function (r) { if (r && r.action && r.action.indexOf('sec:') === 0) go(projHash(p, r.action.slice(4))); });
+    }).join('') + '</div>' +
+      (window.PranchetaSync ? '<div class="sheet-list more-extra">' +
+        '<button class="sheet-item" data-dlg="grok">' + icon('grok') + '<span><b>Falar com o Grok Bot</b><small>Peça ajuda nos seus jogos sincronizados</small></span></button>' +
+        '<button class="sheet-item" data-dlg="sync">' + icon('sync') + '<span><b>Sincronizar com GitHub</b><small>' + (window.PranchetaSync.on() ? 'Ligada · enviar ou baixar agora' : 'Guardar os jogos num repositório privado') + '</small></span></button></div>' : '') +
+      '<div class="dlg-actions"><button class="btn ghost" data-dlg="cancel">Fechar</button></div></div>')
+      .then(function (r) {
+        if (!r || !r.action) return;
+        if (r.action === 'grok') window.PranchetaSync.openGrok();
+        else if (r.action === 'sync') window.PranchetaSync.open();
+        else if (r.action.indexOf('sec:') === 0) go(projHash(p, r.action.slice(4)));
+      });
   }
 
   // botão flutuante (+) do celular
@@ -1014,6 +1026,8 @@
       case 'delete': closeMenus(); deleteProject(p); break;
       case 'export': closeMenus(); exportBackup(); break;
       case 'import': closeMenus(); $('#importFile').click(); break;
+      case 'sync': closeMenus(); if (window.PranchetaSync) window.PranchetaSync.open(); break;
+      case 'grok': closeMenus(); if (window.PranchetaSync) window.PranchetaSync.openGrok(); break;
       case 'restore-samples': closeMenus(); restoreSamples(); break;
       case 'wipe': closeMenus(); wipeAll(); break;
       case 'clear-note': p.notes = ''; touch(p); rerender(); break;
@@ -1198,6 +1212,10 @@
     esc: esc, icon: icon, go: go, projHash: projHash, uid: uid, now: now, stats: stats, engineLabel: engineLabel,
     moveTask: moveTask, isNarrow: isNarrow, autosize: autosize, COLS: COLS, PHASES: PHASES, MECH_STATUS: MECH_STATUS, ART_STATUS: ART_STATUS
   });
+  if (window.PranchetaSync) window.PranchetaSync.init({
+    state: function () { return state; }, current: curP, toast: toast, openDialog: openDialog, esc: esc, icon: icon,
+    setProjects: function (arr) { state.projects = arr.map(normalize); persist(); route(); }
+  });
   route();
   pendingToasts.forEach(function (m) { toast(m); });
 
@@ -1241,5 +1259,5 @@
   }
 
   // gancho de leitura usado só no teste automatizado
-  window.__prancheta = { state: function () { return state; }, KEY: KEY, parseBackup: parseBackup };
+  window.__prancheta = { state: function () { return state; }, KEY: KEY, parseBackup: parseBackup, touch: touch, sampleProjects: sampleProjects };
 })();

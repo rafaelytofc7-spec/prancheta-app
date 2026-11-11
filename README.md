@@ -25,20 +25,33 @@ Quando sair uma versão nova, o app avisa **Nova versão disponível**: toque em
 
 ## Assistente IA
 
-Em cada jogo há a seção **IA** (na barra de baixo do celular; no PC, no menu lateral) e, na tela inicial, o atalho **Assistente IA**. Ele conversa sobre o jogo, lê o GDD, as mecânicas, os personagens, as tarefas, as ideias e os marcos, e **propõe** mudanças (nova tarefa, mover tarefa, nova ideia, mecânica, personagem, marco ou texto no GDD). Cada proposta vira um cartão: nada muda até você tocar em **Aplicar** (e dá para **Desfazer**). A opção "Aplicar mudanças automaticamente" vem desligada.
+Em cada jogo há a seção **IA** (na barra de baixo do celular; no PC, no menu lateral) e, na tela inicial, o atalho **Assistente IA**.
 
-**Chave grátis do Google Gemini (recomendado):**
-1. Abra https://aistudio.google.com/apikey e entre com sua conta Google.
-2. Toque em **Criar chave de API** (Create API key) e copie a chave.
-3. Na Prancheta: **IA > Configurar IA**, provedor "Google Gemini (grátis)", cole a chave, toque em **Testar conexão** e depois em **Salvar**.
+**Conectar (1 minuto):** na primeira vez abre o assistente **Conectar IA** em 3 passos: escolha o provedor (o **Google Gemini** é o recomendado e grátis), toque em **Abrir Google AI Studio**, crie a chave e toque em **Colar**. O app reconhece o provedor pelo começo da chave (`AIza` Gemini, `gsk_` Groq, `sk-or-` OpenRouter, `sk-` OpenAI, `hf_` Hugging Face), testa sozinho, escolhe o melhor modelo disponível e mostra **Conectado · modelo** no topo. Os erros vêm explicados (chave inválida, sem créditos/402, limite de uso/429 — com nova tentativa automática —, sem internet).
 
-Também dá para usar Groq (grátis), OpenRouter (modelos `:free`), OpenAI (pago), qualquer serviço compatível com a API da OpenAI e o **Ollama** do PC (sem chave; só funciona no computador onde o Ollama roda; aberto pelo site, rode o Ollama com `OLLAMA_ORIGINS=https://rafaelytofc7-spec.github.io`).
+> A assinatura do app Gemini (Google AI Pro) não inclui API; a chave do AI Studio é separada e tem uso grátis, na mesma conta Google.
+
+Também funciona com Groq (grátis), OpenRouter (modelos `:free`), Hugging Face (precisa de créditos), OpenAI (pago), qualquer serviço compatível com a API da OpenAI e o **Ollama** do PC (sem chave; só no computador onde o Ollama roda; aberto pelo site, rode `OLLAMA_ORIGINS=https://rafaelytofc7-spec.github.io ollama serve`). A engrenagem abre a configuração avançada (URL e modelo manuais).
+
+**Conversa e Modo agente:** na conversa ele responde e propõe mudanças. No **Modo agente** você diz um objetivo (ex.: "Planeje a pré-produção do Zona Zero") e ele trabalha em até 8 passos — lê o jogo, resume o progresso, busca, planeja — mostrando a linha do tempo dos passos, e no fim entrega **um lote** de mudanças com caixas de seleção: marque o que quiser e toque em **Aplicar selecionados** (dá para **Desfazer**). Ele cria tarefas, marcos com tarefas, mecânicas, personagens, ideias, texto do GDD, move e edita tarefas (a prioridade vai na primeira linha das notas). O agente **nunca apaga** nada. "Aplicar mudanças automaticamente" vem desligado.
 
 **Privacidade:** a chave fica salva só neste aparelho e navegador. Ela não vai para o backup exportado nem para o GitHub. Ao conversar, a mensagem e os dados do jogo que a IA lê são enviados ao provedor escolhido (no plano grátis do Gemini, o Google pode usar as conversas para melhorar os produtos dele). O assistente precisa de internet (menos o Ollama). As conversas ficam salvas neste aparelho e podem ser apagadas no ícone de lixeira.
 
+## Sincronizar com GitHub e falar com o Grok Bot
+
+Em **Dados e backup → Sincronizar com GitHub…** a Prancheta guarda os jogos no repositório **privado** `rafaelytofc7-spec/prancheta-dados` (arquivo `dados/prancheta.json`, no mesmo formato do backup):
+
+1. Toque em **Criar token no GitHub** (abre https://github.com/settings/personal-access-tokens/new).
+2. Nome "Prancheta"; em *Repository access* escolha **Only select repositories → prancheta-dados**; em *Permissions → Repository permissions* dê **Contents: Read and write**.
+3. Gere o token (começa com `github_pat_`), cole no app e toque em **Conectar e sincronizar**.
+
+O app baixa as mudanças ao abrir e envia sozinho alguns segundos depois de cada mudança (ou use **Enviar agora / Baixar agora**). A mesclagem é por jogo, pelo `updatedAt`: se o mesmo jogo mudar nos dois lados, fica o mais recente e o app avisa; a outra versão fica guardada no aparelho. O chip no topo mostra o estado. O token fica só no aparelho e não entra no backup.
+
+Com os jogos sincronizados, **Falar com o Grok Bot** (no topo do Assistente IA ou no painel **Mais**) copia um pedido pronto como "Grok, abre a Prancheta (rafaelytofc7-spec/prancheta-dados) e …" para você colar na conversa com o Grok Bot. Ele não roda dentro do app: lê e edita o arquivo no GitHub, e a Prancheta traz as mudanças na próxima abertura (ou em **Baixar agora**).
+
 ## Onde ficam os dados
 
-Tudo é salvo automaticamente no próprio navegador (armazenamento local). Os dados ficam presos àquele navegador, naquele sistema. O Windows e o Linux do dual-boot **não** compartilham os dados entre si, e Chrome e Firefox também não.
+Tudo é salvo automaticamente no próprio navegador (armazenamento local). Os dados ficam presos àquele navegador, naquele sistema (a não ser que você ligue a sincronização com GitHub). O Windows e o Linux do dual-boot **não** compartilham os dados entre si, e Chrome e Firefox também não.
 
 Se limpar os dados de navegação do site ou de arquivos locais, ou mudar a pasta de lugar, os dados podem sumir. Faça backup.
 
