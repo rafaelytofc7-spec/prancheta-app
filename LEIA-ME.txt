@@ -1,13 +1,14 @@
 PRANCHETA · Planejamento de jogos
 ==================================
 
-App local e offline para planejar seus jogos: visão geral, caderno de
-design (GDD), mecânicas, personagens e criaturas, mundo e níveis, arte e
+App local e offline para planejar seus jogos: visão geral, plano do
+jogo real (decidido), caderno de design (GDD), mecânicas, personagens e criaturas, mundo e níveis, arte e
 áudio, recursos do jogo (efeitos especiais, sons, sprites, animações,
 itens, fases, UI e diálogos), técnica, produção (quadro de tarefas +
-marcos), caixa de ideias, Assistente IA e Equipe de IAs.
+marcos), caixa de ideias, área de testes, equipe do jogo (pessoas),
+Assistente IA e Equipe de IAs.
 Não precisa de internet, conta, servidor nem instalação.
-Versão 1.4.0.
+Versão 1.5.0.
 
 COMO ABRIR
 - Windows: dê dois cliques em "Abrir no Windows.bat"
@@ -57,6 +58,44 @@ ASSISTENTE IA
 - Privacidade: a chave (e as da Equipe de IAs) fica só neste aparelho/navegador e NÃO vai para o
   backup nem para o GitHub. As mensagens e os dados do jogo que a IA lê são
   enviados ao provedor escolhido. Precisa de internet (menos o Ollama).
+
+NAVEGAÇÃO (NOVO NA 1.5)
+- As seções ficam em 4 áreas: Planejar, Produzir, Testar e Equipe. No
+  celular, a barra de baixo mostra as áreas + "Mais"; dentro de cada área
+  uma faixa no topo leva às seções dela. No PC, o menu lateral é agrupado.
+
+JOGO REAL x IDEIAS (NOVO NA 1.5)
+- Rascunho = Caixa de ideias e Caderno de design. Jogo real = o que foi
+  decidido.
+- Documento: visão/pitch, público, gênero, plataformas, engine (padrão
+  Godot 4), core loop, progressão, monetização, arte, som e escopo.
+  "Puxar do rascunho" copia o texto do GDD para ajustar.
+- Confirmados: mecânicas, personagens, fases e ideias promovidas
+  ("Confirmar no jogo real" na Caixa de ideias).
+- Escopo: MVP / Versão 1.0 / Depois, tamanho P/M/G, manter ou cortar.
+- Roadmap: protótipo, vertical slice, alpha, beta e lançamento, com
+  prazo, entregas e responsável. O % vem das tarefas, recursos, bugs e
+  testes ligados ao marco.
+- Builds: versão, data, tipo, plataformas, o que mudou e link.
+
+ÁREA DE TESTES (NOVO NA 1.5)
+- Painel: bugs abertos por gravidade, % de testes aprovados, último
+  playtest e feedback novo.
+- Bugs: gravidade (crítica/alta/média/baixa), passos, plataforma, build,
+  estado (aberto/corrigindo/corrigido/verificado), responsável e o que
+  afeta (mecânica, fase, efeito).
+- Casos de teste: passos, resultado esperado, passou/falhou/não testado.
+- Playtests: data, build, testers, objetivo, duração, nota e notas.
+- Feedback com tags; vira bug ou tarefa com um toque.
+
+EQUIPE DO JOGO (NOVO NA 1.5)
+- Membros: nome, função, habilidades, contato, horas por semana, avatar.
+  Uma vaga da Equipe de IAs também pode entrar como membro.
+- Responsável em tarefas, bugs, testes, recursos, efeitos e marcos.
+- "Quem faz o quê": o que está aberto com cada pessoa e a carga.
+- Vagas abertas e reuniões (ações da reunião viram tarefas).
+- Os dados antigos não mudam; tudo novo entra no backup e na
+  sincronização. Atualize o app em TODOS os aparelhos que sincronizam.
 
 RECURSOS DO JOGO (NOVO NA 1.4)
 - Seção "Recursos" em cada jogo: visão geral com % pronto, progresso por

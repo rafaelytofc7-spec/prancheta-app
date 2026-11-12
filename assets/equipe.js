@@ -548,6 +548,8 @@
   window.PranchetaEquipe = {
     init: function (a) { api = a; },
     html: html, mount: mount,
+    // resumo das 3 vagas para a Equipe do jogo (sem chaves nem endereços)
+    slots: function () { return cfg.slots.map(function (s, i) { var ok = false; try { ok = !!effective(i); } catch (e) { ok = false; } return { i: i, role: String(s.role || (i === 0 ? 'Coordenador' : 'Vaga ' + (i + 1))), desc: String(s.desc || ''), ready: ok }; }); },
     // usado só nos testes automatizados
     _cfgKey: CFG_KEY, _runsKey: RUNS_KEY, _parse: parseJSON, _effective: effective, _runs: function () { return runs; }, _cfg: function () { return cfg; }, _active: function () { return !!active; }
   };

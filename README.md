@@ -1,8 +1,8 @@
 # Prancheta
 
-App local e offline para planejar a criação de jogos: visão geral, caderno de design (GDD), mecânicas, personagens e criaturas, mundo e níveis, arte e áudio, **recursos do jogo** (efeitos especiais com editor de partículas, sons, sprites, animações, itens, fases, UI e diálogos), técnica, produção (quadro de tarefas e marcos), caixa de ideias, Assistente IA e **Equipe de IAs** (até 3 IAs trabalhando juntas).
+App local e offline para planejar a criação de jogos: visão geral, **plano do jogo real** (o que já foi decidido: documento, escopo, roadmap e builds), caderno de design (GDD), mecânicas, personagens e criaturas, mundo e níveis, arte e áudio, **recursos do jogo** (efeitos especiais com editor de partículas, sons, sprites, animações, itens, fases, UI e diálogos), técnica, produção (quadro de tarefas e marcos), caixa de ideias, **área de testes** (bugs, casos de teste, playtests e feedback), **equipe do jogo** (pessoas de verdade, quem faz o quê, vagas e reuniões), Assistente IA e **Equipe de IAs** (até 3 IAs trabalhando juntas).
 
-Versão atual: **1.4.0**.
+Versão atual: **1.5.0**.
 
 Não precisa de internet, conta, servidor nem instalação.
 
@@ -19,7 +19,7 @@ A Prancheta também funciona como app no celular (PWA). Para instalar, ela preci
 2. Toque no botão **Instalar app** no topo (se aparecer) ou no menu **⋮** do Chrome > **Instalar app** / **Adicionar à tela inicial**.
 3. Pronto: o ícone da Prancheta aparece na tela inicial, abre em tela cheia e funciona **sem internet** depois da primeira abertura.
 
-No celular, as seções principais ficam numa barra embaixo da tela (o resto em **Mais**), o botão **+** adiciona jogo, tarefa, ideia ou efeito especial, e o quadro de Produção mostra uma coluna por vez (abas **A fazer / Em andamento / Feito**); as tarefas mudam de coluna pelos botões do cartão.
+No celular, a barra de baixo mostra as 4 áreas — **Planejar** (visão geral, jogo real, ideias, design, mecânicas, personagens, mundo), **Produzir** (produção, recursos, arte, técnica), **Testar** e **Equipe** (pessoas, IAs e assistente) — e **Mais** (todas as seções agrupadas). Dentro de cada área, uma faixa no topo leva às seções dela. O botão **+** adiciona jogo, tarefa, ideia, bug ou efeito especial, e o quadro de Produção mostra uma coluna por vez (abas **A fazer / Em andamento / Feito**); as tarefas mudam de coluna pelos botões do cartão.
 
 Quando sair uma versão nova, o app avisa **Nova versão disponível**: toque em **Atualizar**.
 
@@ -27,7 +27,7 @@ Quando sair uma versão nova, o app avisa **Nova versão disponível**: toque em
 
 ## Assistente IA
 
-Em cada jogo há a seção **IA** (na barra de baixo do celular; no PC, no menu lateral) e, na tela inicial, o atalho **Assistente IA**.
+Em cada jogo há a seção **IA** (na área **Equipe**; no PC, no menu lateral) e, na tela inicial, o atalho **Assistente IA**.
 
 **Conectar (1 minuto):** na primeira vez abre o assistente **Conectar IA** em 3 passos: escolha o provedor (o **Google Gemini** é o recomendado e grátis), toque em **Abrir Google AI Studio**, crie a chave e toque em **Colar**. O app reconhece o provedor pelo começo da chave (`AIza` Gemini, `gsk_` Groq, `sk-or-` OpenRouter, `sk-` OpenAI, `hf_` Hugging Face), testa sozinho, escolhe o melhor modelo disponível e mostra **Conectado · modelo** no topo. Os erros vêm explicados (chave inválida, sem créditos/402, limite de uso/429 — com nova tentativa automática —, sem internet).
 
@@ -39,9 +39,41 @@ Também funciona com Groq (grátis), OpenRouter (modelos `:free`), Hugging Face 
 
 **Privacidade:** a chave (e as chaves das vagas da Equipe de IAs) fica salva só neste aparelho e navegador. Ela não vai para o backup exportado nem para o GitHub. Ao conversar, a mensagem e os dados do jogo que a IA lê são enviados ao provedor escolhido (no plano grátis do Gemini, o Google pode usar as conversas para melhorar os produtos dele). O assistente precisa de internet (menos o Ollama). As conversas ficam salvas neste aparelho e podem ser apagadas no ícone de lixeira.
 
+## Jogo real × Ideias (novo na 1.5)
+
+A Prancheta agora separa o **rascunho** do que foi **decidido**:
+
+- **Rascunho:** Caixa de ideias e Caderno de design (GDD). Vale tudo.
+- **Jogo real** (seção nova, marcada "decidido"): só o que vai mesmo para o jogo.
+  - **Documento:** visão/pitch, público, gênero, plataformas, engine (vem do jogo, padrão Godot 4), core loop, progressão, monetização, direção de arte, som e escopo. O botão **Puxar do rascunho** copia o texto do GDD/arte para você ajustar.
+  - **Confirmado para o jogo:** mecânicas, personagens, fases e ideias promovidas a decisão (na Caixa de ideias há o botão **Confirmar no jogo real**).
+  - **Escopo:** itens em **MVP / Versão 1.0 / Depois**, com tamanho (P/M/G) e **manter/cortar**.
+  - **Roadmap:** marcos por etapa (**protótipo, vertical slice, alpha, beta, lançamento**), prazo, entregas e responsável. O **%** de cada marco é calculado das tarefas, recursos, efeitos, bugs e casos de teste ligados a ele. **Criar roadmap padrão** monta as 5 etapas.
+  - **Builds:** registro de versões (data, tipo interna/playtest/demo/pública, plataformas, o que mudou, link).
+
+## Área de testes (novo na 1.5)
+
+- **Painel:** bugs abertos por gravidade, taxa de aprovação dos testes, último playtest e feedback novo.
+- **Bugs:** título, gravidade (**crítica / alta / média / baixa**), passos para reproduzir, plataforma, build, estado (**aberto / corrigindo / corrigido / verificado**), responsável da equipe, o que ele afeta (mecânica, fase, efeito, personagem) e marco.
+- **Casos de teste:** por mecânica, fase, efeito, personagem ou interface — passos, resultado esperado e **passou / falhou / não testado**. Um toque cria um caso para cada mecânica e fase; caso que falhou vira bug.
+- **Playtests:** data, build, quem testou, objetivo, duração, nota (estrelas) e notas.
+- **Feedback:** caixa de entrada com tags; cada feedback vira **bug** ou **tarefa** com um toque.
+
+## Equipe do jogo (novo na 1.5)
+
+- **Membros:** nome, função (programador, artista 2D/3D, game designer, som/música, roteirista, QA/tester, produtor, marketing, outro), habilidades, contato opcional, horas por semana e avatar com cor e iniciais. Uma vaga da Equipe de IAs também pode entrar como membro.
+- **Responsável** em tarefas, bugs, casos de teste, recursos, efeitos e marcos.
+- **Quem faz o quê:** quadro com o que está aberto para cada pessoa, a carga de trabalho (com folga / boa / cheia / sobrecarregado, pelas horas por semana) e os itens **sem responsável** para atribuir ali mesmo.
+- **Vagas abertas:** funções que faltam (com sugestões); ao preencher, a pessoa entra na equipe.
+- **Reuniões:** data, participantes, notas, decisões e ações — as ações viram tarefas (uma por linha; "Ana: fazer X" já atribui à Ana).
+
+O Assistente IA e a Equipe de IAs também propõem bugs, casos de teste, seções do plano, itens de escopo, marcos com etapa e membros — sempre como cartões que você aprova (com **Desfazer**).
+
+Os dados antigos não mudam: ao abrir a 1.5 cada jogo só ganha as listas novas (vazias) e o plano começa só com a engine, gênero, público e plataformas que já estavam no jogo. Tudo entra no backup e na sincronização com o GitHub. **Atualize o app em todos os aparelhos que sincronizam** (uma versão 1.4 aberta em outro aparelho não mostra as áreas novas).
+
 ## Recursos do jogo
 
-Em cada jogo, a seção **Recursos** (na barra de baixo do celular) junta tudo o que o jogo precisa ter pronto, em abas:
+Em cada jogo, a seção **Recursos** (área **Produzir**) junta tudo o que o jogo precisa ter pronto, em abas:
 
 - **Visão geral:** % pronto do jogo inteiro, progresso por categoria, a lista **O que falta** (ordenada por prioridade) e sugestões para começar com um toque.
 - **Efeitos especiais:** cada efeito tem nome, tipo, gatilho (quando acontece), cores, duração, intensidade, notas, mecânica e fase ligadas, estado e prioridade. O **editor de partículas** mostra o efeito ao vivo num canvas, com modelos prontos (**explosão, fogo, fumaça, faíscas, chuva, cura**, neve e magia) e controles de emissão (contínuo ou rajada), origem, forma do emissor, velocidade, direção, abertura, gravidade, arrasto, vida, tamanho, cores e brilho aditivo. **Exportar:** JSON (copiar ou baixar) e **cena do Godot 4** (`.tscn` com `GPUParticles2D` + `ParticleProcessMaterial`, pronta para instanciar).

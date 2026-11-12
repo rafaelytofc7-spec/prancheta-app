@@ -48,21 +48,45 @@
     checklist: '<path d="m4 6.5 1.6 1.6L8.5 5M4 12.5l1.6 1.6 2.9-3.1M4 18.5l1.6 1.6 2.9-3.1"/><path d="M11.5 7h8.5M11.5 13h8.5M11.5 19h8.5"/>',
     link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
     play: '<path d="M7 5v14l11.5-7z"/>',
+    plano: '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="m9 13 2 2 4-4.5"/>',
+    testes: '<path d="M9 3h6M10 3v6l-5.5 9.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7.5 15h9"/>',
+    time: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c.6-3.4 3-5.3 6-5.3s5.4 1.9 6 5.3"/><circle cx="17.5" cy="9.5" r="2.4"/><path d="M16.5 14.6c2.4.2 4 1.9 4.5 4.6"/>',
+    bug: '<rect x="7" y="7.5" width="10" height="12.5" rx="5"/><path d="M12 11v9M9.5 4.5 11 7.5M14.5 4.5 13 7.5M3 12h4M17 12h4M4 7l3.2 2.2M20 7l-3.2 2.2M4 18l3.2-2M20 18l-3.2-2"/>',
+    feedback: '<path d="M4 5h16v11H10l-5 4v-4H4z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/>',
+    reuniao: '<rect x="3" y="5" width="18" height="15" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4M7.5 14h3M13.5 14h3"/>',
+    vaga: '<circle cx="10" cy="8" r="3.4"/><path d="M3.5 20c.7-3.6 3.2-5.6 6.5-5.6 1.2 0 2.3.3 3.2.8"/><path d="M18 14v6M15 17h6"/>',
+    alert: '<path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4.5M12 17.3h.01"/>',
+    check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>', close: '<path d="M6 6l12 12M18 6 6 18"/>',
+    download: '<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>',
+    escopo: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',
+    build: '<path d="M14.5 6.5a4 4 0 0 0-5 5L4 17l3 3 5.5-5.5a4 4 0 0 0 5-5L15 12l-3-3z"/>',
     equipe: '<circle cx="12" cy="6.5" r="2.6"/><circle cx="5.5" cy="16.5" r="2.4"/><circle cx="18.5" cy="16.5" r="2.4"/><path d="M12 9.1v3.4M12 12.5 7.4 15M12 12.5l4.6 2.5"/>'
   };
   function icon(n, cls) { return '<svg class="i ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[n] || '') + '</svg>'; }
 
   // rótulos curtos para a barra de baixo do celular
-  var SHORT = { geral: 'Geral', design: 'Design', mecanicas: 'Mecânicas', personagens: 'Personagens', mundo: 'Mundo', arte: 'Arte', recursos: 'Recursos', tecnica: 'Técnica', producao: 'Produção', ideias: 'Ideias', ia: 'IA', equipe: 'Equipe' };
-  var BNAV = ['geral', 'producao', 'recursos', 'ia'];
+  var SHORT = { geral: 'Geral', plano: 'Jogo real', design: 'Design', mecanicas: 'Mecânicas', personagens: 'Personagens', mundo: 'Mundo', arte: 'Arte', recursos: 'Recursos', tecnica: 'Técnica', producao: 'Produção', ideias: 'Ideias', testes: 'Testes', time: 'Pessoas', ia: 'IA', equipe: 'IAs' };
+  // as seções são agrupadas em 4 áreas; a barra de baixo do celular mostra as áreas (+ Mais)
+  var GROUPS = [
+    ['planejar', 'Planejar', 'plano', ['geral', 'plano', 'ideias', 'design', 'mecanicas', 'personagens', 'mundo']],
+    ['produzir', 'Produzir', 'producao', ['producao', 'recursos', 'arte', 'tecnica']],
+    ['testar', 'Testar', 'testes', ['testes']],
+    ['equipe', 'Equipe', 'time', ['time', 'equipe', 'ia']]
+  ];
+  var BNAV = GROUPS.map(function (g) { return g[0]; });
+  function groupOf(sec) { for (var i = 0; i < GROUPS.length; i++) if (GROUPS[i][3].indexOf(sec) >= 0) return GROUPS[i]; return GROUPS[0]; }
+  var lastInGroup = {};
+  var TAGS = { plano: 'decidido', ideias: 'rascunho', design: 'rascunho' };
   function phaseKey(ph) { return ['conceito', 'pre', 'producao', 'polimento', 'lancamento'][PHASES.indexOf(ph)] || 'conceito'; }
   function phaseBadge(ph) { return '<span class="badge phase-badge" data-phase="' + phaseKey(ph) + '"><span class="dot"></span>' + esc(ph) + '</span>'; }
   function isNarrow() { return !!(window.matchMedia && window.matchMedia('(max-width: 820px)').matches); }
 
   var SECTIONS = [
-    ['geral', 'Visão geral'], ['design', 'Caderno de design'], ['mecanicas', 'Mecânicas'],
-    ['personagens', 'Personagens e criaturas'], ['mundo', 'Mundo e níveis'], ['arte', 'Arte e áudio'],
-    ['recursos', 'Recursos do jogo'], ['tecnica', 'Técnica'], ['producao', 'Produção'], ['ideias', 'Caixa de ideias'], ['ia', 'Assistente IA'], ['equipe', 'Equipe de IAs']
+    ['geral', 'Visão geral'], ['plano', 'Jogo real'], ['ideias', 'Caixa de ideias'], ['design', 'Caderno de design'], ['mecanicas', 'Mecânicas'],
+    ['personagens', 'Personagens e criaturas'], ['mundo', 'Mundo e níveis'],
+    ['producao', 'Produção'], ['recursos', 'Recursos do jogo'], ['arte', 'Arte e áudio'], ['tecnica', 'Técnica'],
+    ['testes', 'Testes'],
+    ['time', 'Equipe do jogo'], ['equipe', 'Equipe de IAs'], ['ia', 'Assistente IA']
   ];
 
   // ---------------------------------------------------------------- utilidades
@@ -182,7 +206,7 @@
     nc.notes = 'Fase sugerida pela Prancheta: ajuste. Preencha pitch, design e tarefas.';
     nc.tech.constraints = 'Jogo feito em Python.';
 
-    [zz, zv, nc].forEach(function (p) { p.createdAt = t; p.updatedAt = t; });
+    [zz, zv, nc].forEach(function (p) { p.createdAt = t; p.updatedAt = t; modNormalize(p); });
     return [zz, zv, nc];
   }
 
@@ -197,6 +221,9 @@
       tech: { exports: '', constraints: '', risks: '', notes: '' },
       tasks: [], milestones: [], ideas: [],
       effects: [], resources: [],
+      playtests: [], testCases: [], bugs: [], feedback: [],
+      confirmed: [], scope: [], releases: [],
+      members: [], openRoles: [], meetings: [],
       createdAt: t, updatedAt: t
     };
   }
@@ -224,8 +251,15 @@
     if (!out.id) out.id = uid();
     out.title = String(out.title || 'Sem título');
     out.archived = !!out.archived;
-    if (window.PranchetaRecursos) window.PranchetaRecursos.normalizeProject(out);
+    modNormalize(out);
     return out;
+  }
+  // cada módulo completa os seus dados (versões antigas ganham listas vazias, nada se perde)
+  function modNormalize(p) {
+    ['PranchetaRecursos', 'PranchetaTestes', 'PranchetaPlano', 'PranchetaTime'].forEach(function (m) {
+      if (window[m] && window[m].normalizeProject) { try { window[m].normalizeProject(p); } catch (e) { /* segue com o resto */ } }
+    });
+    return p;
   }
 
   // ---------------------------------------------------------------- estado
@@ -445,14 +479,16 @@
   function renderProject(p, sec, sub, sub2) {
     var changed = current.project !== p.id || current.section !== sec || current.sub !== (sub || '') || current.sub2 !== (sub2 || '');
     current = { project: p.id, section: sec, sub: sub || '', sub2: sub2 || '' };
+    lastInGroup[groupOf(sec)[0]] = sec;
     document.body.dataset.view = 'project';
+    document.body.dataset.grp = groupOf(sec)[0];
     document.body.dataset.sec = sec;
     document.documentElement.style.setProperty('--pc', p.color);
     var secName = labelOf(SECTIONS, sec);
     document.title = p.title + ' · ' + secName + ' · Prancheta';
     $('#crumbs').innerHTML = '<a href="#/">Todos os jogos</a><span class="sep">/</span><a href="' + projHash(p) + '" id="crumbTitle">' + esc(p.title) + '</a><span class="sep">/</span><span class="cur">' + esc(secName) + '</span>';
     $('#main').innerHTML = '<div class="proj"><aside class="side" aria-label="Seções do jogo">' + sideHtml(p, sec) + '</aside>' +
-      '<section class="content' + (sec === 'ia' ? ' ia-content' : sec === 'equipe' ? ' eq-content' : '') + '" id="content">' + sectionHtml(p, sec) + '</section></div>';
+      '<section class="content' + (sec === 'ia' ? ' ia-content' : sec === 'equipe' ? ' eq-content' : '') + '" id="content">' + stripHtml(p, sec) + sectionHtml(p, sec) + '</section></div>';
     if (sec === 'ia' && window.PranchetaIA) window.PranchetaIA.mount($('#content'), p);
     mountSection(p, sec);
     autosizeAll($('#main'));
@@ -462,49 +498,69 @@
 
   // na barra de seções do celular (rolagem horizontal), deixa a seção atual visível
   function centerNav() {
-    var nav = $('.nav'), cur = nav && $('[aria-current=page]', nav);
-    if (!cur || nav.scrollWidth <= nav.clientWidth) return;
-    nav.scrollLeft = Math.max(0, cur.offsetLeft - (nav.clientWidth - cur.offsetWidth) / 2);
+    [$('.nav'), $('.grp-strip')].forEach(function (nav) {
+      var cur = nav && $('[aria-current=page]', nav);
+      if (!cur || nav.scrollWidth <= nav.clientWidth) return;
+      nav.scrollLeft = Math.max(0, cur.offsetLeft - (nav.clientWidth - cur.offsetWidth) / 2);
+    });
+  }
+  // celular: faixa com as seções da área atual (Planejar / Produzir / Testar / Equipe)
+  function stripHtml(p, sec) {
+    var g = groupOf(sec), c = counts(p);
+    if (g[3].length < 2) return '';
+    return '<nav class="grp-strip" aria-label="Seções de ' + esc(g[1]) + '">' + g[3].map(function (k) {
+      var n = c[k];
+      return '<a href="' + projHash(p, k) + '"' + (k === sec ? ' aria-current="page"' : '') + '>' + icon(k) + '<span>' + esc(SHORT[k]) + '</span>' + (n ? '<small>' + n + '</small>' : '') + '</a>';
+    }).join('') + '</nav>';
   }
 
   function counts(p) {
     var s = stats(p);
     return { geral: '', design: '', mecanicas: p.mechanics.length, personagens: p.characters.length, mundo: p.levels.length,
-      arte: p.assets.length, recursos: window.PranchetaRecursos ? window.PranchetaRecursos.count(p) : 0, tecnica: '', producao: s.total - s.done, ideias: p.ideas.length };
+      arte: p.assets.length, recursos: window.PranchetaRecursos ? window.PranchetaRecursos.count(p) : 0, tecnica: '', producao: s.total - s.done, ideias: p.ideas.length,
+      plano: window.PranchetaPlano ? window.PranchetaPlano.count(p) : '', testes: window.PranchetaTestes ? window.PranchetaTestes.count(p) : '', time: window.PranchetaTime ? window.PranchetaTime.count(p) : '' };
   }
   function mountSection(p, sec) {
     if (sec === 'recursos' && window.PranchetaRecursos) window.PranchetaRecursos.mount($('#content'), p, current.sub, current.sub2);
     if (sec === 'equipe' && window.PranchetaEquipe) window.PranchetaEquipe.mount($('#content'), p);
+    if (sec === 'testes' && window.PranchetaTestes) window.PranchetaTestes.mount($('#content'), p);
+    if (sec === 'plano' && window.PranchetaPlano) window.PranchetaPlano.mount($('#content'), p);
+    if (sec === 'time' && window.PranchetaTime) window.PranchetaTime.mount($('#content'), p);
   }
 
   function sideHtml(p, sec) {
     var s = stats(p), c = counts(p);
-    var inBar = BNAV.indexOf(sec) >= 0;
+    var g = groupOf(sec);
     return '<div class="side-head">' +
         '<a class="back" href="#/" aria-label="Todos os jogos">' + icon('back') + '<span>Todos os jogos</span></a>' +
         '<div class="side-title"><div class="ring" style="--p:' + s.pct + '" title="' + s.pct + '% das tarefas feitas"><span>' + s.pct + '%</span></div>' +
         '<div class="side-name"><h2 id="sideTitle">' + esc(p.title) + '</h2><small>' + phaseBadge(p.phase) + '<span class="eng">' + esc(engineLabel(p)) + '</span></small></div></div>' +
       '</div>' +
-      '<nav class="nav" aria-label="Seções">' + SECTIONS.map(function (x) {
-        var n = c[x[0]];
-        return '<a href="' + projHash(p, x[0]) + '"' + (x[0] === sec ? ' aria-current="page"' : '') + '>' + icon(x[0]) + '<span>' + esc(x[1]) + '</span>' +
-          (n ? '<span class="count" title="' + (x[0] === 'producao' ? 'tarefas abertas' : 'itens') + '">' + n + '</span>' : '') + '</a>';
+      '<nav class="nav" aria-label="Seções">' + GROUPS.map(function (gr) {
+        return '<div class="nav-grp" data-grp="' + gr[0] + '"><div class="nav-gh">' + esc(gr[1]) + '</div>' + gr[3].map(function (k) {
+          var n = c[k], label = labelOf(SECTIONS, k);
+          return '<a href="' + projHash(p, k) + '"' + (k === sec ? ' aria-current="page"' : '') + '>' + icon(k) + '<span>' + esc(label) + '</span>' +
+            (TAGS[k] ? '<em class="nav-tag" data-tag="' + TAGS[k] + '">' + TAGS[k] + '</em>' : '') +
+            (n ? '<span class="count" title="' + (k === 'producao' ? 'tarefas abertas' : k === 'testes' ? 'bugs abertos' : k === 'time' ? 'pessoas' : 'itens') + '">' + n + '</span>' : '') + '</a>';
+        }).join('') + '</div>';
       }).join('') + '</nav>' +
-      '<nav class="bnav" aria-label="Seções do jogo">' + BNAV.map(function (k) {
-        var n = k === 'producao' || k === 'ideias' ? c[k] : 0;
-        return '<a href="' + projHash(p, k) + '"' + (k === sec ? ' aria-current="page"' : '') + '><span class="bn-ic">' + icon(k) + (n ? '<span class="bn-count">' + n + '</span>' : '') + '</span><span class="bn-l">' + esc(SHORT[k]) + '</span></a>';
+      '<nav class="bnav" aria-label="Áreas do jogo">' + GROUPS.map(function (gr) {
+        var to = lastInGroup[gr[0]] || gr[3][0], n = gr[0] === 'testar' ? c.testes : gr[0] === 'produzir' ? c.producao : 0;
+        return '<a href="' + projHash(p, to) + '" data-grp="' + gr[0] + '"' + (gr[0] === g[0] ? ' aria-current="page"' : '') + '><span class="bn-ic">' + icon(gr[2]) + (n ? '<span class="bn-count">' + n + '</span>' : '') + '</span><span class="bn-l">' + esc(gr[1]) + '</span></a>';
       }).join('') +
-        '<button type="button" data-action="more-sections" aria-haspopup="dialog"' + (inBar ? '' : ' aria-current="page"') + '><span class="bn-ic">' + icon(inBar ? 'mais' : sec) + '</span><span class="bn-l">' + esc(inBar ? 'Mais' : SHORT[sec]) + '</span></button>' +
+        '<button type="button" data-action="more-sections" aria-haspopup="dialog"><span class="bn-ic">' + icon('mais') + '</span><span class="bn-l">Mais</span></button>' +
       '</nav>' +
       '<div class="side-foot">Tudo é salvo automaticamente.<br>Faça backup em “Dados e backup”.</div>';
   }
 
   function moreSections(p) {
     var c = counts(p);
-    openDialog('<div class="dlg sheet"><h2 id="dialogTitle">Seções do jogo</h2><div class="sheet-grid">' + SECTIONS.map(function (x) {
-      var n = c[x[0]];
-      return '<button class="sheet-tile" data-dlg="sec:' + x[0] + '"' + (x[0] === current.section ? ' aria-current="page"' : '') + '>' + icon(x[0]) + '<span>' + esc(x[1]) + '</span>' + (n ? '<small>' + n + '</small>' : '') + '</button>';
-    }).join('') + '</div>' +
+    openDialog('<div class="dlg sheet"><h2 id="dialogTitle">Seções do jogo</h2>' + GROUPS.map(function (gr) {
+      return '<h3 class="sheet-gh">' + icon(gr[2]) + esc(gr[1]) + '</h3><div class="sheet-grid">' + gr[3].map(function (k) {
+        var n = c[k];
+        return '<button class="sheet-tile" data-dlg="sec:' + k + '"' + (k === current.section ? ' aria-current="page"' : '') + '>' + icon(k) + '<span>' + esc(labelOf(SECTIONS, k)) + '</span>' + (n ? '<small>' + n + '</small>' : '') + '</button>';
+      }).join('') + '</div>';
+    }).join('') +
       (window.PranchetaSync ? '<div class="sheet-list more-extra">' +
         '<button class="sheet-item" data-dlg="grok">' + icon('grok') + '<span><b>Falar com o Grok Bot</b><small>Peça ajuda nos seus jogos sincronizados</small></span></button>' +
         '<button class="sheet-item" data-dlg="sync">' + icon('sync') + '<span><b>Sincronizar com GitHub</b><small>' + (window.PranchetaSync.on() ? 'Ligada · enviar ou baixar agora' : 'Guardar os jogos num repositório privado') + '</small></span></button></div>' : '') +
@@ -524,12 +580,21 @@
     openDialog('<div class="dlg sheet"><h2 id="dialogTitle">Adicionar em “' + esc(p.title) + '”</h2><div class="sheet-list">' +
       '<button class="sheet-item" data-dlg="task">' + icon('tarefa') + '<span><b>Nova tarefa</b><small>Entra em “A fazer”, na Produção</small></span></button>' +
       '<button class="sheet-item" data-dlg="idea">' + icon('ideias') + '<span><b>Nova ideia</b><small>Vai para a Caixa de ideias</small></span></button>' +
+      (window.PranchetaTestes ? '<button class="sheet-item" data-dlg="bug">' + icon('bug') + '<span><b>Novo bug</b><small>Vai para os Testes, com a build atual</small></span></button>' : '') +
       (window.PranchetaRecursos ? '<button class="sheet-item" data-dlg="fx">' + icon('efeito') + '<span><b>Novo efeito especial</b><small>Abre o editor de partículas</small></span></button>' : '') +
       '<button class="sheet-item" data-dlg="game">' + icon('jogo') + '<span><b>Novo jogo</b><small>Começar outro projeto do zero</small></span></button>' +
       '</div><div class="dlg-actions"><button class="btn ghost" data-dlg="cancel">Cancelar</button></div></div>')
       .then(function (r) {
         if (!r || !r.action) return;
         if (r.action === 'game') { newProject(); return; }
+        if (r.action === 'bug') {
+          promptDialog('Novo bug', 'O que deu errado?', '', 'Registrar bug').then(function (v) {
+            if (!v) return;
+            var b = window.PranchetaTestes.makeBug({ title: v, build: window.PranchetaTestes.lastBuild(p) });
+            p.bugs.unshift(b); touch(p); go(projHash(p, 'testes') + '/bugs'); toast('Bug registrado. Complete a gravidade e os passos.');
+          });
+          return;
+        }
         if (r.action === 'fx') { var fx = window.PranchetaRecursos.makeEffect({ preset: 'explosao', name: 'Novo efeito' }); p.effects.unshift(fx); touch(p); go(projHash(p, 'recursos') + '/efeitos/' + encodeURIComponent(fx.id)); return; }
         var isTask = r.action === 'task';
         promptDialog(isTask ? 'Nova tarefa' : 'Nova ideia', isTask ? 'Tarefa' : 'Ideia', '', isTask ? 'Adicionar tarefa' : 'Guardar ideia').then(function (v) {
@@ -590,8 +655,20 @@
       case 'ia': return window.PranchetaIA ? window.PranchetaIA.html(p) : emptyMsg('O assistente não carregou. Recarregue a página.', 'ia');
       case 'recursos': return window.PranchetaRecursos ? window.PranchetaRecursos.html(p, current.sub, current.sub2) : emptyMsg('Os recursos não carregaram. Recarregue a página.', 'recursos');
       case 'equipe': return window.PranchetaEquipe ? window.PranchetaEquipe.html(p) : emptyMsg('A equipe de IAs não carregou. Recarregue a página.', 'equipe');
+      case 'testes': return window.PranchetaTestes ? window.PranchetaTestes.html(p, current.sub) : emptyMsg('A área de testes não carregou. Recarregue a página.', 'testes');
+      case 'plano': return window.PranchetaPlano ? window.PranchetaPlano.html(p, current.sub) : emptyMsg('O plano do jogo não carregou. Recarregue a página.', 'plano');
+      case 'time': return window.PranchetaTime ? window.PranchetaTime.html(p, current.sub) : emptyMsg('A equipe não carregou. Recarregue a página.', 'time');
       default: return secOverview(p);
     }
+  }
+
+  // resumo das áreas novas na visão geral: jogo real, testes e equipe
+  function areaStrip(p) {
+    var P = window.PranchetaPlano, Ts = window.PranchetaTestes, Tm = window.PranchetaTime, out = [];
+    if (P) { var a = P.summary(p); out.push('<a class="ov-area" href="' + projHash(p, 'plano') + '">' + icon('plano') + '<span><b>Jogo real · ' + a.doc.pct + '%</b><small>' + a.confirmed + ' confirmados · ' + (a.next ? esc(a.next.title) + ' ' + a.nextPct + '%' : 'sem roadmap') + '</small></span></a>'); }
+    if (Ts) { var b = Ts.summary(p); out.push('<a class="ov-area" href="' + projHash(p, 'testes') + '">' + icon('testes') + '<span><b>' + b.openBugs + (b.openBugs === 1 ? ' bug aberto' : ' bugs abertos') + (b.bySev.critica ? ' · ' + b.bySev.critica + ' crítico' + (b.bySev.critica > 1 ? 's' : '') : '') + '</b><small>' + (b.passRate != null ? b.passRate + '% dos testes passando' : 'nenhum teste rodado') + '</small></span></a>'); }
+    if (Tm) { var t = Tm.summary(p); out.push('<a class="ov-area" href="' + projHash(p, 'time') + '">' + icon('time') + '<span><b>' + t.members + (t.members === 1 ? ' pessoa' : ' pessoas') + ' na equipe</b><small>' + t.hours + ' h/semana · ' + t.openRoles + (t.openRoles === 1 ? ' vaga aberta' : ' vagas abertas') + '</small></span></a>'); }
+    return out.length ? '<div class="ov-areas">' + out.join('') + '</div>' : '';
   }
 
   // Visão geral
@@ -615,7 +692,7 @@
           '<span>Próximo marco</span><b style="font-family:var(--font);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + (next ? esc(next.title) : '') + '">' + (next ? esc(next.title) : '—') + '</b></div>' +
           '<a class="btn sm" style="margin-top:14px" href="' + projHash(p, 'producao') + '">Abrir produção ' + icon('right') + '</a>' +
         '</div>' +
-      '</div>' +
+      '</div>' + areaStrip(p) +
       '<div class="stack">' +
         '<div class="panel"><div class="label" style="margin-bottom:10px">Fase de produção</div><div class="phases" role="group" aria-label="Fase de produção">' +
           PHASES.map(function (ph, i) { return '<button class="phase-btn' + (i < pi ? ' past' : '') + '" data-action="set-phase" data-v="' + esc(ph) + '" aria-pressed="' + (i === pi) + '"><small>0' + (i + 1) + '</small>' + esc(ph) + '</button>'; }).join('') +
@@ -787,7 +864,7 @@
     return '<article class="task' + (t.col === 'done' ? ' done' : '') + '" draggable="true" data-task="' + esc(t.id) + '">' +
       '<input type="checkbox" class="check" data-action="toggle-task" ' + (t.col === 'done' ? 'checked ' : '') + 'aria-label="Concluir: ' + esc(t.title) + '">' +
       '<div class="task-body" data-action="edit-task" role="button" tabindex="0" aria-label="Editar tarefa: ' + esc(t.title) + '"><div class="task-title">' + esc(t.title) + '</div>' +
-        ((m || t.notes) ? '<div class="task-meta">' + (m ? '<span class="tag">' + icon('flag') + esc(m.title) + '</span>' : '') + (t.notes ? '<span class="tag">com notas</span>' : '') + '</div>' : '') +
+        ((m || t.notes || t.assignee) ? '<div class="task-meta">' + (t.assignee && window.PranchetaTime ? window.PranchetaTime.chip(p, t.assignee) : '') + (m ? '<span class="tag">' + icon('flag') + esc(m.title) + '</span>' : '') + (t.notes ? '<span class="tag">com notas</span>' : '') + '</div>' : '') +
       '</div>' +
       '<div class="task-move">' +
         (ci > 0 ? '<button class="icon-btn mv" data-action="move-task" data-dir="-1" aria-label="Mover para ' + esc(COLS[ci - 1][1]) + '">' + icon('left') + '<span class="mv-l" aria-hidden="true">' + esc(COLS[ci - 1][1]) + '</span></button>' : '') +
@@ -797,7 +874,7 @@
 
   function secIdeas(p) {
     var ideas = p.ideas.slice().sort(function (a, b) { return a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0; });
-    return head('Caixa de ideias', 'Anote antes que fuja', 'Capture ideias soltas sem pensar onde encaixam. Depois promova a tarefa ou a mecânica.') +
+    return head('Caixa de ideias · rascunho', 'Anote antes que fuja', 'Capture ideias soltas sem pensar onde encaixam. Aqui é rascunho: quando uma ideia for decidida, confirme no Jogo real (ou promova a tarefa ou mecânica).') +
       '<form class="capture" data-add="ideas"><label for="ideaInput" class="label" style="display:block;margin-bottom:8px">Nova ideia</label>' +
         '<textarea class="textarea" id="ideaInput" name="name" placeholder="E se…" rows="3"></textarea>' +
         '<div class="capture-foot"><span class="hint"><kbd>Enter</kbd> guarda · <kbd>Shift</kbd>+<kbd>Enter</kbd> quebra a linha</span><button class="btn primary" type="submit">' + icon('plus') + 'Guardar ideia</button></div></form>' +
@@ -807,6 +884,7 @@
           '<div class="idea-foot"><span class="when">' + esc(fmtRelative(i.createdAt)) + '</span>' +
             '<button class="btn sm" data-action="promote" data-to="task">Virar tarefa</button>' +
             '<button class="btn sm" data-action="promote" data-to="mechanic">Virar mecânica</button>' +
+            (window.PranchetaPlano ? '<button class="btn sm pl-promote" data-action="promote" data-to="real">' + icon('check') + 'Confirmar no jogo real</button>' : '') +
             '<button class="icon-btn del" data-action="del-item" aria-label="Excluir ideia">' + icon('trash') + '</button></div>' +
         '</div>';
       }).join('') + '</div>' : '<div style="margin-top:22px">' + emptyMsg('A caixa está vazia. Qualquer ideia vale, até as estranhas.', 'ideias') + '</div>');
@@ -885,6 +963,7 @@
         var p = blankProject(r.title.trim() || 'Novo jogo');
         p.genre = r.genre.trim(); p.engine = r.engine;
         p.engineVersion = r.engine === 'Godot' ? '4.7.2' : '';
+        modNormalize(p);
         p.color = COLORS[(state.projects.length + 4) % COLORS.length];
         state.projects.push(p); persist();
         go(projHash(p));
@@ -1007,6 +1086,8 @@
       '<div class="cols-2"><div class="field"><label class="label" for="tkC">Coluna</label><select class="select" id="tkC" name="col">' + options(COLS, t.col) + '</select></div>' +
       '<div class="field"><label class="label" for="tkM">Marco</label><select class="select" id="tkM" name="milestoneId"><option value="">Nenhum</option>' +
         p.milestones.map(function (m) { return '<option value="' + esc(m.id) + '"' + (m.id === t.milestoneId ? ' selected' : '') + '>' + esc(m.title) + '</option>'; }).join('') + '</select></div></div>' +
+      (window.PranchetaTime ? '<div class="field"><label class="label" for="tkA">Responsável</label><select class="select" id="tkA" name="assignee">' + window.PranchetaTime.memberOptions(p, t.assignee || '', 'Ninguém ainda') + '</select>' +
+        (p.members.length ? '' : '<p class="hint">Cadastre as pessoas em Equipe do jogo para dividir as tarefas.</p>') + '</div>' : '') +
       '<div class="dlg-actions split"><button class="btn danger" data-dlg="delete">' + icon('trash') + 'Excluir</button>' +
       '<span class="dlg-main"><button class="btn ghost" data-dlg="cancel">Cancelar</button><button class="btn primary" data-dlg="ok">Salvar</button></span></div></div>',
       function (d) { var x = $('#tkN', d); autosize(x); x.addEventListener('input', function () { autosize(x); }); })
@@ -1018,6 +1099,7 @@
           return;
         }
         t.title = r.title.trim() || t.title; t.notes = r.notes; t.col = r.col; t.milestoneId = r.milestoneId;
+        if (r.assignee !== undefined) t.assignee = r.assignee;
         touch(p); rerender();
       });
   }
@@ -1092,11 +1174,12 @@
         for (var k = 0; k < list.length; k++) if (list[k].id === itemEl.dataset.id) { idx = k; break; }
         if (idx < 0) break;
         var removed = list.splice(idx, 1)[0], unlinked = [];
-        if (itemEl.dataset.list === 'milestones') p.tasks.forEach(function (t) { if (t.milestoneId === removed.id) { t.milestoneId = ''; unlinked.push(t); } });
+        if (itemEl.dataset.list === 'milestones') ['tasks', 'resources', 'effects', 'bugs', 'testCases', 'releases'].forEach(function (lk) { (p[lk] || []).forEach(function (t) { if (t.milestoneId === removed.id) { t.milestoneId = ''; unlinked.push(t); } }); });
+        if (itemEl.dataset.list === 'members') ['tasks', 'resources', 'effects', 'bugs', 'testCases'].forEach(function (lk) { (p[lk] || []).forEach(function (t) { if (t.assignee === removed.id) { t.assignee = ''; unlinked.push(t); } }); });
         touch(p); rerender();
         var name = String(removed.name || removed.title || removed.text || 'Item');
         toast('“' + (name.length > 40 ? name.slice(0, 40) + '…' : name) + '” excluído.', 'Desfazer', function () {
-          list.splice(idx, 0, removed); unlinked.forEach(function (t) { t.milestoneId = removed.id; }); touch(p); rerender();
+          list.splice(idx, 0, removed); unlinked.forEach(function (t) { if (itemEl.dataset.list === 'members') t.assignee = removed.id; else t.milestoneId = removed.id; }); touch(p); rerender();
         });
         break;
       }
@@ -1107,6 +1190,12 @@
         if (!text) { toast('Escreva a ideia antes de promover.'); break; }
         var first = text.split('\n')[0].slice(0, 100), rest = text.length > first.length ? text : '';
         var to = el.dataset.to;
+        if (to === 'real' && window.PranchetaPlano) {
+          var ix = p.ideas.indexOf(idea), c = window.PranchetaPlano.confirm(p, 'ideia', idea);
+          p.ideas.splice(ix, 1); touch(p); rerender();
+          toast('Confirmada no jogo real.', 'Ver', function () { go(projHash(p, 'plano')); });
+          break;
+        }
         if (to === 'task') p.tasks.push({ id: uid(), title: first, notes: rest, col: 'todo', milestoneId: '', createdAt: now() });
         else p.mechanics.unshift({ id: uid(), name: first, desc: rest, status: 'ideia' });
         p.ideas.splice(p.ideas.indexOf(idea), 1); touch(p); rerender();
@@ -1175,6 +1264,9 @@
     }
   });
 
+  // campos que mudam o desenho da tela (agrupamentos, cores, %): redesenha depois de salvar
+  var RERENDER_ON = { bugs: ['severity', 'status', 'assignee'], testCases: ['status', 'area', 'assignee'], scope: ['tier', 'size'], members: ['role', 'hours', 'aiSlot'],
+    openRoles: ['status', 'role'], playtests: ['date'], releases: ['date', 'kind'], meetings: ['date'], feedback: ['status'] };
   document.addEventListener('change', function (e) {
     var t = e.target;
     if (t.id === 'showArchived') { ui.showArchived = t.checked; renderGrid(); return; }
@@ -1188,7 +1280,7 @@
       item[t.dataset.field] = t.type === 'checkbox' ? t.checked : t.value;
       if (t.classList.contains('status') || t.classList.contains('prio')) t.dataset.v = t.value;
       touch(p);
-      if ((t.dataset.field === 'status' && (ui.mechFilter || ui.assetFilter)) || row.dataset.list === 'milestones' || row.dataset.list === 'assets') {
+      if ((t.dataset.field === 'status' && (ui.mechFilter || ui.assetFilter)) || row.dataset.list === 'milestones' || row.dataset.list === 'assets' || (RERENDER_ON[row.dataset.list] && RERENDER_ON[row.dataset.list].indexOf(t.dataset.field) >= 0)) {
         rerender('[data-id="' + row.dataset.id + '"] [data-field="' + t.dataset.field + '"]');
       } else refreshSide();
     } else if (t.dataset.bind) {
@@ -1249,7 +1341,6 @@
   });
 
   // ---------------------------------------------------------------- início
-  load();
   if (window.PranchetaIA) window.PranchetaIA.init({
     state: function () { return state; }, getProject: getProject, curP: curP, current: function () { return current; },
     touch: touch, persist: persist, refreshSide: refreshSide, toast: toast, openDialog: openDialog, confirmDialog: confirmDialog,
@@ -1264,6 +1355,8 @@
   };
   if (window.PranchetaRecursos) window.PranchetaRecursos.init(shared);
   if (window.PranchetaEquipe) window.PranchetaEquipe.init(shared);
+  ['PranchetaTestes', 'PranchetaPlano', 'PranchetaTime'].forEach(function (m) { if (window[m]) window[m].init(shared); });
+  load();
   if (window.PranchetaSync) window.PranchetaSync.init({
     state: function () { return state; }, current: curP, toast: toast, openDialog: openDialog, esc: esc, icon: icon,
     setProjects: function (arr) { state.projects = arr.map(normalize); persist(); route(); }

@@ -87,6 +87,7 @@
     out.priority = has(PRIORITY, e.priority) ? e.priority : 'media';
     out.notes = String(e.notes || '');
     out.mechanic = String(e.mechanic || ''); out.level = String(e.level || '');
+    out.assignee = String(e.assignee || ''); out.milestoneId = String(e.milestoneId || '');
     out.particles = cleanParticles(e.particles);
     out.colors = [out.particles.colorStart, out.particles.colorEnd];
     if (!out.createdAt) out.createdAt = now();
@@ -101,6 +102,7 @@
     out.status = has(RES_STATUS, r.status) ? r.status : 'ideia';
     out.priority = has(PRIORITY, r.priority) ? r.priority : 'media';
     out.notes = String(r.notes || ''); out.link = String(r.link || '');
+    out.assignee = String(r.assignee || ''); out.milestoneId = String(r.milestoneId || '');
     if (!out.createdAt) out.createdAt = now();
     return out;
   }
@@ -395,12 +397,21 @@
               : kind === 'personagens' ? '<input class="input rs-sub" data-field="role" value="' + E(x.role || '') + '" placeholder="Papel (inimigo, chefe…)" aria-label="Papel" autocomplete="off">' : '') +
             '<select class="select status" data-field="' + stField + '" data-v="' + E(st) + '" aria-label="Estado">' + opts(stList, st) + '</select>' +
             '<select class="select prio" data-field="priority" data-v="' + E(pr) + '" aria-label="Prioridade">' + PRIORITY.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === pr ? ' selected' : '') + '>Prioridade ' + E(o[1].toLowerCase()) + '</option>'; }).join('') + '</select>' +
-          '</div>' +
+          '</div>' + (listName === 'resources' ? ownHtml(p, x, 'data-field') : '') +
           '<textarea class="textarea desc" data-field="' + noteField + '" rows="1" aria-label="Notas" placeholder="' + E(notePh) + '">' + E(x[noteField] || '') + '</textarea>' +
           '<div class="rs-link"><span class="rs-link-ic" aria-hidden="true">' + I('link') + '</span><input class="input bare" data-field="link" value="' + E(x.link || '') + '" placeholder="Link ou arquivo (ex.: res://sons/tiro.ogg)" aria-label="Link ou arquivo" autocomplete="off" spellcheck="false">' +
             (/^https?:\/\//i.test(x.link || '') ? '<a class="btn ghost sm" href="' + E(x.link) + '" target="_blank" rel="noopener noreferrer">Abrir ↗</a>' : '') + '</div>' +
         '</div>';
       }).join('') + '</div>' : '<div class="empty-state compact"><span class="empty-ic">' + I(K.icon) + '</span><p>Nada em ' + E(K.label.toLowerCase()) + ' ainda.</p></div>');
+  }
+
+  // quem faz e em qual marco do roadmap entra (Equipe do jogo / Jogo real)
+  function ownHtml(p, x, attr, fields) {
+    var T = window.PranchetaTime, ms = p.milestones || [];
+    var who = T ? '<select class="select rs-own" ' + attr + '="assignee" aria-label="Responsável">' + T.memberOptions(p, x.assignee || '', 'Sem responsável') + '</select>' : '';
+    var mil = '<select class="select rs-own" ' + attr + '="milestoneId" aria-label="Marco"><option value="">Sem marco</option>' + ms.map(function (m) { return '<option value="' + E(m.id) + '"' + (m.id === x.milestoneId ? ' selected' : '') + '>' + E(m.title) + '</option>'; }).join('') + '</select>';
+    if (fields) return (who ? '<label class="field"><span class="label">Responsável</span>' + who + '</label>' : '') + '<label class="field"><span class="label">Marco do roadmap</span>' + mil + '</label>';
+    return '<div class="rs-item-sel rs-item-own">' + who + mil + '</div>';
   }
 
   // ---------------------------------------------------------------- editor de efeito
@@ -450,6 +461,7 @@
           '<label class="field"><span class="label">Gatilho</span><input class="input" data-fx="trigger" value="' + E(fx.trigger) + '" placeholder="Quando acontece? (ex.: barril explode)" autocomplete="off"></label>' +
           '<label class="field"><span class="label">Duração (s)</span><input class="input" type="number" min="0" max="60" step="0.1" inputmode="decimal" data-fx="duration" value="' + E(fx.duration) + '"></label>' +
           '<label class="field"><span class="label">Mecânica ligada</span><select class="select" data-fx="mechanic"><option value="">Nenhuma</option>' + (p.mechanics || []).map(function (m) { return '<option' + (m.name === fx.mechanic ? ' selected' : '') + '>' + E(m.name) + '</option>'; }).join('') + (fx.mechanic && !(p.mechanics || []).some(function (m) { return m.name === fx.mechanic; }) ? '<option selected>' + E(fx.mechanic) + '</option>' : '') + '</select></label>' +
+          ownHtml(p, fx, 'data-fx', true) +
           '<label class="field"><span class="label">Fase ligada</span><select class="select" data-fx="level"><option value="">Nenhuma</option>' + (p.levels || []).map(function (l) { return '<option' + (l.name === fx.level ? ' selected' : '') + '>' + E(l.name) + '</option>'; }).join('') + (fx.level && !(p.levels || []).some(function (l) { return l.name === fx.level; }) ? '<option selected>' + E(fx.level) + '</option>' : '') + '</select></label>' +
         '</div><label class="field"><span class="label">Notas</span><textarea class="textarea" data-fx="notes" rows="3" placeholder="Som junto, tremida de câmera, referência…">' + E(fx.notes) + '</textarea></label></section>' +
       '</div></div></div>';

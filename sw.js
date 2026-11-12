@@ -1,12 +1,15 @@
 /* Prancheta — service worker (funciona offline depois da primeira visita) */
 'use strict';
-var VERSION = 'prancheta-v1.4.0';
+var VERSION = 'prancheta-v1.5.0';
 var FILES = [
   './',
   './index.html',
   './manifest.webmanifest',
   './assets/app.css',
   './assets/recursos.js',
+  './assets/testes.js',
+  './assets/plano.js',
+  './assets/time.js',
   './assets/ia.js',
   './assets/equipe.js',
   './assets/sync.js',

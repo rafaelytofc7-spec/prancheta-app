@@ -138,8 +138,14 @@
       personagens: p.characters.map(function (c) { return { nome: c.name, papel: c.role, habilidades: full ? cut(c.abilities, 300) : undefined, arte: c.artStatus }; }),
       ideias: p.ideas.map(function (i) { return cut(i.text, full ? 300 : 100); }),
       efeitos: (p.effects || []).map(function (e) { return { nome: e.name, tipo: e.type, gatilho: e.trigger || undefined, estado: e.status, cores: full ? e.colors : undefined, mecanica: e.mechanic || undefined }; }),
-      recursos: (p.resources || []).map(function (r) { return { categoria: r.kind, nome: r.name, tipo: r.sub || undefined, estado: r.status, prioridade: r.priority, notas: full && r.notes ? cut(r.notes, 160) : undefined }; })
+      recursos: (p.resources || []).map(function (r) { return { categoria: r.kind, nome: r.name, tipo: r.sub || undefined, estado: r.status, prioridade: r.priority, notas: full && r.notes ? cut(r.notes, 160) : undefined }; }),
+      bugs: (p.bugs || []).map(function (b) { return { id: b.id, titulo: b.title, gravidade: b.severity, estado: b.status, responsavel: who(p, b.assignee), passos: full && b.steps ? cut(b.steps, 200) : undefined }; }),
+      casos_teste: (p.testCases || []).map(function (c) { return { titulo: c.title, area: c.area, estado: c.status }; }),
+      equipe: (p.members || []).map(function (m) { return { nome: m.name, funcao: m.role, horas: m.hours || undefined, ia: m.aiSlot != null ? true : undefined }; }),
+      escopo: (p.scope || []).map(function (x) { return { nome: x.name, nivel: x.tier, decisao: x.decision }; }),
+      confirmado_no_jogo_real: (p.confirmed || []).map(function (c) { return c.name; })
     };
+    o.marcos.forEach(function (m) { var mm = p.milestones.filter(function (x) { return x.id === m.id; })[0]; if (mm && mm.stage) m.etapa = mm.stage; if (mm && window.PranchetaPlano) m.pct = window.PranchetaPlano.milestoneProgress(p, mm).pct; });
     if (full) {
       o.gdd = {}; Object.keys(GDD_FIELDS).forEach(function (k) { o.gdd[k] = cut(p.gdd[k], lim); });
       o.niveis = p.levels.map(function (l) { return { nome: l.name, estado: l.status, funcao: cut(l.purpose, 200) }; });
@@ -147,10 +153,27 @@
       o.assets = p.assets.map(function (a) { return { nome: a.name, tipo: a.type, estado: a.status }; });
       o.tecnica = { exportacoes: cut(p.tech.exports, 300), restricoes: cut(p.tech.constraints, 300), riscos: cut(p.tech.risks, 300), notas: cut(p.tech.notes, 300) };
       o.referencias = cut(p.references, 400);
+      o.plano_jogo_real = {}; Object.keys(PLAN_FIELDS).forEach(function (k) { o.plano_jogo_real[k] = cut(p.plan && p.plan[k], lim); });
+      o.playtests = (p.playtests || []).slice(-5).map(function (s) { return { data: s.date, build: s.build, nota: s.rating || undefined, notas: cut(s.notes, 200) }; });
+      o.feedback_novo = (p.feedback || []).filter(function (f) { return f.status === 'novo'; }).map(function (f) { return cut(f.text, 160); });
+      o.vagas_abertas = (p.openRoles || []).filter(function (r) { return r.status !== 'preenchida'; }).map(function (r) { return r.role; });
+      o.builds = (p.releases || []).map(function (r) { return { versao: r.version, data: r.date, tipo: r.kind }; });
     } else {
       o.gdd_preenchido = Object.keys(GDD_FIELDS).filter(function (k) { return String(p.gdd[k] || '').trim(); });
     }
     return o;
+  }
+  var PLAN_FIELDS = { pitch: 'Visão e pitch', audience: 'Público', genre: 'Gênero', platforms: 'Plataformas', engine: 'Engine', loop: 'Core loop', progression: 'Progressão', monetization: 'Monetização', art: 'Direção de arte', sound: 'Direção de som', scopeNote: 'Escopo' };
+  var SEV_NAMES = { critica: 'Crítica', alta: 'Alta', media: 'Média', baixa: 'Baixa' };
+  var STAGE_NAMES = { prototipo: 'Protótipo', vertical: 'Vertical slice', alpha: 'Alpha', beta: 'Beta', lancamento: 'Lançamento', outro: 'Outro' };
+  var TIER_NAMES = { mvp: 'MVP', v1: 'Versão 1.0', depois: 'Depois' };
+  function who(p, id) { var m = id && (p.members || []).filter(function (x) { return x.id === id; })[0]; return m ? m.name : undefined; }
+  // "ligado_a" em texto → referência "tipo:Nome" usada na Área de testes
+  function linkRef(p, name) {
+    var n = fold(name).trim(); if (!n) return '';
+    var lists = [['mecanica', p.mechanics], ['fase', p.levels], ['efeito', p.effects || []], ['personagem', p.characters]];
+    for (var i = 0; i < lists.length; i++) { var hit = lists[i][1].filter(function (x) { return fold(x.name) === n; })[0] || lists[i][1].filter(function (x) { return fold(x.name).indexOf(n) >= 0; })[0]; if (hit) return lists[i][0] + ':' + hit.name; }
+    return '';
   }
   function listGames() {
     return api.state().projects.map(function (p) { var s = api.stats(p); return { id: p.id, titulo: p.title, fase: p.phase, genero: p.genre, motor: api.engineLabel(p), arquivado: p.archived, tarefas_abertas: s.total - s.done }; });
@@ -171,7 +194,8 @@
     { name: 'criar_mecanica', write: true, description: 'Propõe uma nova mecânica.', parameters: { type: 'object', properties: { jogo_id: gameArg, nome: { type: 'string' }, descricao: { type: 'string' }, estado: { type: 'string', enum: ['ideia', 'definir', 'andamento', 'pronto'] } }, required: ['nome'] } },
     { name: 'criar_personagem', write: true, description: 'Propõe um novo personagem ou criatura.', parameters: { type: 'object', properties: { jogo_id: gameArg, nome: { type: 'string' }, papel: { type: 'string', description: 'protagonista, inimigo, chefe, NPC…' }, habilidades: { type: 'string', description: 'habilidades e comportamento' } }, required: ['nome'] } },
     { name: 'atualizar_gdd', write: true, description: 'Propõe escrever num campo do caderno de design (GDD).', parameters: { type: 'object', properties: { jogo_id: gameArg, campo: { type: 'string', enum: Object.keys(GDD_FIELDS), description: 'premise = premissa, loop = loop de jogabilidade, tone = tom, world = mundo, references = referências, notes = notas' }, texto: { type: 'string' }, modo: { type: 'string', enum: ['acrescentar', 'substituir'], description: 'acrescentar (padrão) adiciona ao fim; substituir troca o texto todo' } }, required: ['campo', 'texto'] } },
-    { name: 'criar_marco', write: true, description: 'Propõe um novo marco de produção (meta maior, com prazo opcional).', parameters: { type: 'object', properties: { jogo_id: gameArg, titulo: { type: 'string' }, prazo: { type: 'string', description: 'data AAAA-MM-DD (opcional)' } }, required: ['titulo'] } },
+    { name: 'criar_marco', write: true, description: 'Propõe um novo marco do roadmap (meta maior, com prazo, etapa e entregas opcionais).', parameters: { type: 'object', properties: { jogo_id: gameArg, titulo: { type: 'string' }, prazo: { type: 'string', description: 'data AAAA-MM-DD (opcional)' },
+      etapa: { type: 'string', enum: ['prototipo', 'vertical', 'alpha', 'beta', 'lancamento', 'outro'], description: 'etapa do roadmap (opcional)' }, entregas: { type: 'string', description: 'o que precisa estar pronto (opcional)' }, responsavel: { type: 'string', description: 'nome de um membro da equipe (opcional)' } }, required: ['titulo'] } },
     { name: 'criar_marco_com_tarefas', write: true, description: 'Propõe um marco já com tarefas novas ligadas a ele e/ou ligando tarefas existentes.', parameters: { type: 'object', properties: { jogo_id: gameArg, titulo: { type: 'string' }, prazo: { type: 'string', description: 'AAAA-MM-DD (opcional)' },
       tarefas: { type: 'array', description: 'tarefas novas do marco', items: { type: 'object', properties: { titulo: { type: 'string' }, notas: { type: 'string' }, coluna: colArg }, required: ['titulo'] } },
       ligar_tarefas: { type: 'array', description: 'ids ou títulos de tarefas existentes para ligar ao marco', items: { type: 'string' } } }, required: ['titulo'] } },
@@ -181,7 +205,19 @@
       intensidade: { type: 'string', enum: ['baixa', 'media', 'alta'] }, mecanica: { type: 'string', description: 'nome de uma mecânica existente (opcional)' }, notas: { type: 'string' } }, required: ['nome'] } },
     { name: 'criar_recurso', write: true, description: 'Propõe um item na lista de Recursos do jogo: sons e música, sprites/arte/3D, animações, itens, UI/HUD ou diálogos/história.', parameters: { type: 'object', properties: { jogo_id: gameArg,
       categoria: { type: 'string', enum: ['sons', 'arte', 'animacoes', 'itens', 'ui', 'dialogos'] }, nome: { type: 'string' }, subtipo: { type: 'string', description: 'ex.: SFX, Música, Sprite, Modelo 3D, HUD, Menu, Cutscene' },
-      prioridade: { type: 'string', enum: ['alta', 'media', 'baixa'] }, notas: { type: 'string' } }, required: ['categoria', 'nome'] } }
+      prioridade: { type: 'string', enum: ['alta', 'media', 'baixa'] }, notas: { type: 'string' } }, required: ['categoria', 'nome'] } },
+    { name: 'criar_bug', write: true, description: 'Propõe registrar um bug na Área de testes.', parameters: { type: 'object', properties: { jogo_id: gameArg, titulo: { type: 'string' },
+      gravidade: { type: 'string', enum: ['critica', 'alta', 'media', 'baixa'] }, passos: { type: 'string', description: 'passos para reproduzir' }, plataforma: { type: 'string' }, build: { type: 'string', description: 'versão da build (opcional)' },
+      responsavel: { type: 'string', description: 'nome de um membro da equipe (opcional)' }, ligado_a: { type: 'string', description: 'nome de uma mecânica, fase, efeito ou personagem (opcional)' } }, required: ['titulo'] } },
+    { name: 'criar_caso_teste', write: true, description: 'Propõe um caso de teste (o que testar, passos e resultado esperado) na Área de testes.', parameters: { type: 'object', properties: { jogo_id: gameArg, titulo: { type: 'string' },
+      area: { type: 'string', enum: ['mecanica', 'fase', 'efeito', 'personagem', 'ui', 'geral'] }, ligado_a: { type: 'string', description: 'nome da mecânica/fase/efeito/personagem testado (opcional)' }, passos: { type: 'string' }, esperado: { type: 'string', description: 'resultado esperado' } }, required: ['titulo'] } },
+    { name: 'atualizar_plano', write: true, description: 'Propõe escrever numa seção do Plano do jogo real (o que já foi DECIDIDO, diferente do GDD-rascunho).', parameters: { type: 'object', properties: { jogo_id: gameArg,
+      secao: { type: 'string', enum: ['pitch', 'audience', 'genre', 'platforms', 'engine', 'loop', 'progression', 'monetization', 'art', 'sound', 'scopeNote'], description: 'pitch = visão, audience = público, genre = gênero, platforms = plataformas, engine = engine, loop = core loop, progression = progressão, monetization = monetização, art = direção de arte, sound = som, scopeNote = escopo' },
+      texto: { type: 'string' }, modo: { type: 'string', enum: ['acrescentar', 'substituir'] } }, required: ['secao', 'texto'] } },
+    { name: 'criar_escopo', write: true, description: 'Propõe um item na lista de escopo do jogo real (MVP, versão 1.0 ou depois).', parameters: { type: 'object', properties: { jogo_id: gameArg, nome: { type: 'string' },
+      nivel: { type: 'string', enum: ['mvp', 'v1', 'depois'] }, tamanho: { type: 'string', enum: ['P', 'M', 'G'] }, notas: { type: 'string' } }, required: ['nome'] } },
+    { name: 'criar_membro', write: true, description: 'Propõe cadastrar uma pessoa (ou vaga a preencher) na Equipe do jogo.', parameters: { type: 'object', properties: { jogo_id: gameArg, nome: { type: 'string' },
+      funcao: { type: 'string', enum: ['programador', 'arte2d', 'arte3d', 'design', 'som', 'roteiro', 'qa', 'produtor', 'marketing', 'outro'] }, habilidades: { type: 'string' }, horas: { type: 'number', description: 'horas por semana' } }, required: ['nome'] } }
   ];
   var TOOL_BY = {}; TOOLS.forEach(function (t) { TOOL_BY[t.name] = t; });
   function toolsPayload() { return TOOLS.map(function (t) { return { type: 'function', 'function': { name: t.name, description: t.description, parameters: t.parameters } }; }); }
@@ -216,6 +252,13 @@
       p.assets.forEach(function (a) { hit('asset', a.id, a.name + ' ' + (a.type || '')); });
       (p.effects || []).forEach(function (e) { hit('efeito', e.id, e.name + ' ' + (e.trigger || '') + ' ' + (e.notes || '')); });
       (p.resources || []).forEach(function (r) { hit('recurso (' + r.kind + ')', r.id, r.name + ' ' + (r.notes || '')); });
+      (p.bugs || []).forEach(function (b) { hit('bug (' + b.status + ')', b.id, b.title + ' ' + (b.steps || '')); });
+      (p.testCases || []).forEach(function (c) { hit('caso de teste', c.id, c.title + ' ' + (c.steps || '')); });
+      (p.feedback || []).forEach(function (f) { hit('feedback', f.id, f.text); });
+      (p.members || []).forEach(function (m) { hit('membro da equipe', m.id, m.name + ' ' + (m.skills || '')); });
+      (p.scope || []).forEach(function (x) { hit('escopo (' + x.tier + ')', x.id, x.name); });
+      (p.meetings || []).forEach(function (m) { hit('reunião ' + (m.date || ''), m.id, (m.title || '') + ' ' + (m.decisions || '') + ' ' + (m.actions || '')); });
+      if (p.plan) Object.keys(PLAN_FIELDS).forEach(function (k) { if (p.plan[k]) hit('jogo real: ' + PLAN_FIELDS[k], '', p.plan[k]); });
       Object.keys(GDD_FIELDS).forEach(function (k) { if (fold(p.gdd[k]).indexOf(n) >= 0 && out.length < 30) { var t = String(p.gdd[k]), i = fold(t).indexOf(n); out.push({ jogo_id: p.id, jogo: p.title, tipo: 'GDD: ' + GDD_FIELDS[k], texto: '…' + t.slice(Math.max(0, i - 60), i + 100) + '…' }); } });
     });
     return { busca: q, resultados: out, total: out.length };
@@ -258,8 +301,10 @@
   }
 
   var CAT_NAMES = { sons: 'Sons e música', arte: 'Sprites, arte e 3D', animacoes: 'Animações', itens: 'Itens', ui: 'UI e HUD', dialogos: 'Diálogos e história' };
-  var TITLES = { criar_efeito: 'Novo efeito especial', criar_recurso: 'Novo recurso', criar_tarefa: 'Nova tarefa', atualizar_tarefa: 'Editar tarefa', mover_tarefa: 'Mover tarefa', criar_ideia: 'Nova ideia', criar_mecanica: 'Nova mecânica', criar_personagem: 'Novo personagem', atualizar_gdd: 'Atualizar GDD', criar_marco: 'Novo marco', criar_marco_com_tarefas: 'Novo marco com tarefas' };
-  var ICON_OF = { criar_efeito: 'efeito', criar_recurso: 'recursos', criar_tarefa: 'tarefa', atualizar_tarefa: 'edit', mover_tarefa: 'producao', criar_ideia: 'ideias', criar_mecanica: 'mecanicas', criar_personagem: 'personagens', atualizar_gdd: 'design', criar_marco: 'flag', criar_marco_com_tarefas: 'flag' };
+  var TITLES = { criar_efeito: 'Novo efeito especial', criar_recurso: 'Novo recurso', criar_tarefa: 'Nova tarefa', atualizar_tarefa: 'Editar tarefa', mover_tarefa: 'Mover tarefa', criar_ideia: 'Nova ideia', criar_mecanica: 'Nova mecânica', criar_personagem: 'Novo personagem', atualizar_gdd: 'Atualizar GDD', criar_marco: 'Novo marco', criar_marco_com_tarefas: 'Novo marco com tarefas',
+    criar_bug: 'Novo bug', criar_caso_teste: 'Novo caso de teste', atualizar_plano: 'Plano do jogo real', criar_escopo: 'Item de escopo', criar_membro: 'Novo membro da equipe' };
+  var ICON_OF = { criar_efeito: 'efeito', criar_recurso: 'recursos', criar_tarefa: 'tarefa', atualizar_tarefa: 'edit', mover_tarefa: 'producao', criar_ideia: 'ideias', criar_mecanica: 'mecanicas', criar_personagem: 'personagens', atualizar_gdd: 'design', criar_marco: 'flag', criar_marco_com_tarefas: 'flag',
+    criar_bug: 'bug', criar_caso_teste: 'testes', atualizar_plano: 'plano', criar_escopo: 'escopo', criar_membro: 'time' };
   var PRIO = { alta: 'Alta', media: 'Média', baixa: 'Baixa' };
   // descreve a ação para o cartão
   function describe(a) {
@@ -271,7 +316,12 @@
     else if (a.tool === 'criar_mecanica') { main = g.nome; rows.push(['Nome', g.nome]); if (g.descricao) rows.push(['Descrição', g.descricao]); rows.push(['Estado', MECH_NAMES[g.estado] || 'Ideia']); }
     else if (a.tool === 'criar_personagem') { main = g.nome; rows.push(['Nome', g.nome]); if (g.papel) rows.push(['Papel', g.papel]); if (g.habilidades) rows.push(['Habilidades', g.habilidades]); }
     else if (a.tool === 'atualizar_gdd') { main = GDD_FIELDS[g.campo] || g.campo; rows.push(['Campo', GDD_FIELDS[g.campo] || g.campo]); rows.push(['Modo', g.modo === 'substituir' ? 'Substituir o texto' : 'Acrescentar ao fim']); rows.push(['Texto', g.texto]); }
-    else if (a.tool === 'criar_marco') { main = g.titulo; rows.push(['Marco', g.titulo]); if (g.prazo) rows.push(['Prazo', g.prazo]); }
+    else if (a.tool === 'criar_marco') { main = g.titulo; rows.push(['Marco', g.titulo]); if (g.etapa) rows.push(['Etapa', STAGE_NAMES[g.etapa] || g.etapa]); if (g.prazo) rows.push(['Prazo', g.prazo]); if (g.entregas) rows.push(['Entregas', g.entregas]); if (g.responsavel) rows.push(['Responsável', g.responsavel]); }
+    else if (a.tool === 'criar_bug') { main = g.titulo; rows.push(['Bug', g.titulo]); rows.push(['Gravidade', SEV_NAMES[g.gravidade] || 'Média']); if (g.passos) rows.push(['Passos', g.passos]); if (g.plataforma) rows.push(['Plataforma', g.plataforma]); if (g.build) rows.push(['Build', g.build]); if (g.ligado_a) rows.push(['Ligado a', g.ligado_a]); if (g.responsavel) rows.push(['Responsável', g.responsavel]); }
+    else if (a.tool === 'criar_caso_teste') { main = g.titulo; rows.push(['Teste', g.titulo]); if (g.area) rows.push(['Área', g.area]); if (g.ligado_a) rows.push(['Ligado a', g.ligado_a]); if (g.passos) rows.push(['Passos', g.passos]); if (g.esperado) rows.push(['Esperado', g.esperado]); }
+    else if (a.tool === 'atualizar_plano') { main = PLAN_FIELDS[g.secao] || g.secao; rows.push(['Seção', main]); rows.push(['Modo', g.modo === 'substituir' ? 'Substituir o texto' : 'Acrescentar ao fim']); rows.push(['Texto', g.texto]); }
+    else if (a.tool === 'criar_escopo') { main = g.nome; rows.push(['Item', g.nome]); rows.push(['Nível', TIER_NAMES[g.nivel] || 'MVP']); if (g.tamanho) rows.push(['Tamanho', g.tamanho]); if (g.notas) rows.push(['Notas', g.notas]); }
+    else if (a.tool === 'criar_membro') { main = g.nome; rows.push(['Nome', g.nome]); if (g.funcao) rows.push(['Função', window.PranchetaTime ? window.PranchetaTime.roleLabel(g.funcao) : g.funcao]); if (g.habilidades) rows.push(['Habilidades', g.habilidades]); if (g.horas) rows.push(['Horas/semana', String(g.horas)]); }
     else if (a.tool === 'criar_efeito') { main = g.nome; rows.push(['Efeito', g.nome]); if (g.tipo) rows.push(['Tipo', g.tipo]); if (g.modelo) rows.push(['Modelo', g.modelo]); if (g.gatilho) rows.push(['Gatilho', g.gatilho]); if (Array.isArray(g.cores) && g.cores.length) rows.push(['Cores', g.cores.join(', ')]); if (g.duracao) rows.push(['Duração', g.duracao + ' s']); if (g.mecanica) rows.push(['Mecânica', g.mecanica]); if (g.notas) rows.push(['Notas', g.notas]); }
     else if (a.tool === 'criar_recurso') { main = g.nome; rows.push(['Categoria', CAT_NAMES[g.categoria] || g.categoria]); rows.push(['Nome', g.nome]); if (g.subtipo) rows.push(['Tipo', g.subtipo]); if (g.prioridade) rows.push(['Prioridade', PRIO[g.prioridade] || g.prioridade]); if (g.notas) rows.push(['Notas', g.notas]); }
     else if (a.tool === 'criar_marco_com_tarefas') {
@@ -334,7 +384,8 @@
       case 'criar_marco_com_tarefas': {
         if (!s(g.titulo)) throw new Error('Marco sem título.');
         var due = /^\d{4}-\d{2}-\d{2}$/.test(s(g.prazo)) ? s(g.prazo) : '';
-        var ml = { id: uid(), title: s(g.titulo), due: due, done: false }; p.milestones.push(ml); ops.push({ remove: 'milestones', id: ml.id });
+        var own = g.responsavel && window.PranchetaTime ? window.PranchetaTime.findMember(p, g.responsavel) : null;
+        var ml = { id: uid(), title: s(g.titulo), due: due, done: false, stage: STAGE_NAMES[g.etapa] ? g.etapa : '', deliverables: s(g.entregas), owner: own ? own.id : '' }; p.milestones.push(ml); ops.push({ remove: 'milestones', id: ml.id });
         if (a.tool === 'criar_marco_com_tarefas') {
           (Array.isArray(g.tarefas) ? g.tarefas : []).forEach(function (x) { if (typeof x === 'string') x = { titulo: x }; if (x && s(x.titulo)) newTask(x, ml.id); });
           (Array.isArray(g.ligar_tarefas) ? g.ligar_tarefas : []).forEach(function (r) { var t = findTask(p, r); if (t) { ops.push({ link: { id: t.id, prev: t.milestoneId || '' } }); t.milestoneId = ml.id; } });
@@ -356,6 +407,43 @@
         if (!p.resources) p.resources = [];
         p.resources.push(rs); ops.push({ remove: 'resources', id: rs.id }); break;
       }
+      case 'criar_bug': {
+        if (!s(g.titulo)) throw new Error('Bug sem título.');
+        var TS = window.PranchetaTestes; if (!TS) throw new Error('Área de testes indisponível.');
+        var bw = g.responsavel && window.PranchetaTime ? window.PranchetaTime.findMember(p, g.responsavel) : null;
+        var bug = TS.makeBug({ title: s(g.titulo), severity: g.gravidade, steps: s(g.passos), platform: s(g.plataforma), build: s(g.build) || TS.lastBuild(p), assignee: bw ? bw.id : '', link: linkRef(p, g.ligado_a) });
+        if (!p.bugs) p.bugs = [];
+        p.bugs.unshift(bug); ops.push({ remove: 'bugs', id: bug.id }); break;
+      }
+      case 'criar_caso_teste': {
+        if (!s(g.titulo)) throw new Error('Caso de teste sem título.');
+        var TS2 = window.PranchetaTestes; if (!TS2) throw new Error('Área de testes indisponível.');
+        var lr = linkRef(p, g.ligado_a);
+        var tc = TS2.makeCase({ title: s(g.titulo), area: g.area || (lr ? lr.split(':')[0] : 'geral'), link: lr, steps: s(g.passos), expected: s(g.esperado) });
+        if (!p.testCases) p.testCases = [];
+        p.testCases.push(tc); ops.push({ remove: 'testCases', id: tc.id }); break;
+      }
+      case 'atualizar_plano': {
+        if (!PLAN_FIELDS[g.secao]) throw new Error('Seção do plano inválida.');
+        if (!s(g.texto)) throw new Error('Texto vazio.');
+        if (!p.plan) p.plan = {};
+        var pv = String(p.plan[g.secao] || '');
+        p.plan[g.secao] = g.modo === 'substituir' ? s(g.texto) : (pv.trim() ? pv.replace(/\s+$/, '') + '\n\n' + s(g.texto) : s(g.texto));
+        ops.push({ plan: { field: g.secao, prev: pv } }); break;
+      }
+      case 'criar_escopo': {
+        if (!s(g.nome)) throw new Error('Item de escopo sem nome.');
+        if (!p.scope) p.scope = [];
+        var sc = { id: uid(), name: s(g.nome).slice(0, 200), tier: TIER_NAMES[g.nivel] ? g.nivel : 'mvp', decision: 'manter', size: ['P', 'M', 'G'].indexOf(g.tamanho) >= 0 ? g.tamanho : 'M', notes: s(g.notas), refId: '', createdAt: api.now() };
+        p.scope.push(sc); ops.push({ remove: 'scope', id: sc.id }); break;
+      }
+      case 'criar_membro': {
+        if (!s(g.nome)) throw new Error('Membro sem nome.');
+        var TM = window.PranchetaTime; if (!TM) throw new Error('Equipe indisponível.');
+        if (!p.members) p.members = [];
+        var mb = TM.makeMember({ project: p, name: s(g.nome), role: g.funcao, skills: s(g.habilidades), hours: g.horas });
+        p.members.push(mb); ops.push({ remove: 'members', id: mb.id }); break;
+      }
       default: throw new Error('Ação desconhecida.');
     }
     api.touch(p); api.refreshSide();
@@ -367,9 +455,10 @@
     var ops = u.ops || [u], ok = true; // u sem ops = formato antigo (v1.2)
     ops.slice().reverse().forEach(function (o) {
       var list = o.remove || o.list;
-      if (list) { var arr = p[list], k = arr.map(function (x) { return x.id; }).indexOf(o.id); if (k < 0) ok = false; else arr.splice(k, 1); }
+      if (list) { var arr = p[list] || [], k = arr.map(function (x) { return x.id; }).indexOf(o.id); if (k < 0) ok = false; else arr.splice(k, 1); }
       else if (o.move) { var t = p.tasks.filter(function (x) { return x.id === o.move.id; })[0]; if (!t) { ok = false; return; } p.tasks.splice(p.tasks.indexOf(t), 1); t.col = o.move.col; p.tasks.splice(Math.min(o.move.index, p.tasks.length), 0, t); }
       else if (o.gdd) p.gdd[o.gdd.field] = o.gdd.prev;
+      else if (o.plan) { if (!p.plan) p.plan = {}; p.plan[o.plan.field] = o.plan.prev; }
       else if (o.task) { var tt = p.tasks.filter(function (x) { return x.id === o.task; })[0]; if (!tt) ok = false; else { tt.title = o.title; tt.notes = o.notes; } }
       else if (o.link) { var tl = p.tasks.filter(function (x) { return x.id === o.link.id; })[0]; if (tl) tl.milestoneId = o.link.prev; }
     });
@@ -387,7 +476,9 @@
       '- Antes de opinar sobre um jogo, leia os dados dele. Baseie-se só no que está registrado.',
       '- Nunca apresente como decidido algo que não está nos dados. Quando for ideia sua, deixe claro que é sugestão (por exemplo, comece com "Sugestão:").',
       '- Não invente história, lore ou fatos sobre os jogos existentes. Se faltar informação, pergunte.',
-      '- Para mudar dados (criar tarefa, mover tarefa, criar ideia, mecânica, personagem, marco, efeito especial, recurso do jogo ou escrever no GDD), proponha a ação. Cada ação vira um cartão que o usuário confirma com "Aplicar". Nunca diga que já aplicou: diga que propôs.',
+      '- A Prancheta separa RASCUNHO (Caixa de ideias e Caderno de design/GDD) do JOGO REAL (plano decidido: atualizar_plano, criar_escopo, roadmap com marcos por etapa). Só escreva no plano do jogo real o que o usuário já decidiu ou pediu; ideias novas vão para criar_ideia.',
+      '- Também existem a Área de testes (criar_bug, criar_caso_teste) e a Equipe do jogo com pessoas reais (criar_membro; use o nome em "responsavel" para atribuir bugs e marcos).',
+      '- Para mudar dados (criar tarefa, mover tarefa, criar ideia, mecânica, personagem, marco, efeito especial, recurso do jogo, bug, caso de teste, item de escopo, membro da equipe, escrever no GDD ou no plano do jogo real), proponha a ação. Cada ação vira um cartão que o usuário confirma com "Aplicar". Nunca diga que já aplicou: diga que propôs.',
       '- Você é um agente: pode chamar várias ferramentas em sequência (até ' + MAX_STEPS + ' passos por pedido). Leia antes de propor (ler_jogo, buscar, resumo_progresso).',
       '- Para um objetivo grande: 1) leia o necessário; 2) escreva um plano curto e numerado; 3) proponha as mudanças de uma vez (várias chamadas na mesma resposta viram um lote para o usuário revisar); 4) termine com um resumo curto do que propôs.',
       '- Proponha no máximo 12 ações por pedido e não repita propostas já feitas. Prefira criar_marco_com_tarefas quando várias tarefas formam uma meta.',
@@ -400,7 +491,7 @@
     if (fallback) {
       lines.push('Este modelo não usa ferramentas. Para propor mudanças, inclua no fim da resposta um bloco por ação, exatamente assim:');
       lines.push('```acao\n{"ferramenta": "criar_tarefa", "args": {"titulo": "...", "coluna": "todo"}}\n```');
-      lines.push('Ferramentas e argumentos: ' + TOOLS.filter(function (t) { return t.write; }).map(function (t) { return t.name + '(' + Object.keys(t.parameters.properties).join(', ') + ')'; }).join('; ') + '. Colunas: todo, doing, done. Campos do GDD: ' + Object.keys(GDD_FIELDS).join(', ') + '.');
+      lines.push('Ferramentas e argumentos: ' + TOOLS.filter(function (t) { return t.write; }).map(function (t) { return t.name + '(' + Object.keys(t.parameters.properties).join(', ') + ')'; }).join('; ') + '. Colunas: todo, doing, done. Campos do GDD: ' + Object.keys(GDD_FIELDS).join(', ') + '. Seções do plano: ' + Object.keys(PLAN_FIELDS).join(', ') + '.');
     }
     return lines.join('\n');
   }
@@ -585,7 +676,8 @@
   }
 
   // ---------------------------------------------------------------- conversa / agente
-  var NOUN = { criar_efeito: ['efeito especial', 'efeitos especiais'], criar_recurso: ['recurso', 'recursos'], criar_tarefa: ['tarefa', 'tarefas'], atualizar_tarefa: ['edição de tarefa', 'edições de tarefas'], mover_tarefa: ['movimento de tarefa', 'movimentos de tarefas'], criar_ideia: ['ideia', 'ideias'], criar_mecanica: ['mecânica', 'mecânicas'], criar_personagem: ['personagem', 'personagens'], atualizar_gdd: ['mudança no GDD', 'mudanças no GDD'], criar_marco: ['marco', 'marcos'], criar_marco_com_tarefas: ['marco com tarefas', 'marcos com tarefas'] };
+  var NOUN = { criar_efeito: ['efeito especial', 'efeitos especiais'], criar_recurso: ['recurso', 'recursos'], criar_tarefa: ['tarefa', 'tarefas'], atualizar_tarefa: ['edição de tarefa', 'edições de tarefas'], mover_tarefa: ['movimento de tarefa', 'movimentos de tarefas'], criar_ideia: ['ideia', 'ideias'], criar_mecanica: ['mecânica', 'mecânicas'], criar_personagem: ['personagem', 'personagens'], atualizar_gdd: ['mudança no GDD', 'mudanças no GDD'], criar_marco: ['marco', 'marcos'], criar_marco_com_tarefas: ['marco com tarefas', 'marcos com tarefas'],
+    criar_bug: ['bug', 'bugs'], criar_caso_teste: ['caso de teste', 'casos de teste'], atualizar_plano: ['mudança no plano', 'mudanças no plano'], criar_escopo: ['item de escopo', 'itens de escopo'], criar_membro: ['membro', 'membros'] };
   function proposeLabel(actions) {
     var n = actions.length, same = actions.every(function (a) { return a.tool === actions[0].tool; });
     var w = same && NOUN[actions[0].tool] ? NOUN[actions[0].tool][n === 1 ? 0 : 1] : (n === 1 ? 'mudança' : 'mudanças');
