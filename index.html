@@ -53,11 +53,13 @@ if (/^https?:$/.test(location.protocol)) document.write('<link rel="manifest" hr
 <div class="banner" id="storageBanner" hidden></div>
 <main id="main" tabindex="-1"></main>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
-<button class="fab" id="fab" type="button" data-action="fab" aria-label="Adicionar (novo jogo, tarefa ou ideia)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+<button class="fab" id="fab" type="button" data-action="fab" aria-label="Adicionar (novo jogo, tarefa, ideia ou efeito)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <dialog id="dialog" aria-labelledby="dialogTitle"></dialog>
 <noscript><p style="padding:2rem;color:#fff">A Prancheta precisa de JavaScript ativado no navegador.</p></noscript>
+<script src="assets/recursos.js"></script>
 <script src="assets/ia.js"></script>
+<script src="assets/equipe.js"></script>
 <script src="assets/sync.js"></script>
 <script src="assets/app.js"></script>
 </body>

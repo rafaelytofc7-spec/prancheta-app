@@ -136,7 +136,9 @@
       marcos: p.milestones.map(function (m) { return { id: m.id, titulo: m.title, prazo: m.due || '', feito: !!m.done }; }),
       mecanicas: p.mechanics.map(function (m) { return { nome: m.name, estado: m.status, descricao: full ? cut(m.desc, 300) : undefined }; }),
       personagens: p.characters.map(function (c) { return { nome: c.name, papel: c.role, habilidades: full ? cut(c.abilities, 300) : undefined, arte: c.artStatus }; }),
-      ideias: p.ideas.map(function (i) { return cut(i.text, full ? 300 : 100); })
+      ideias: p.ideas.map(function (i) { return cut(i.text, full ? 300 : 100); }),
+      efeitos: (p.effects || []).map(function (e) { return { nome: e.name, tipo: e.type, gatilho: e.trigger || undefined, estado: e.status, cores: full ? e.colors : undefined, mecanica: e.mechanic || undefined }; }),
+      recursos: (p.resources || []).map(function (r) { return { categoria: r.kind, nome: r.name, tipo: r.sub || undefined, estado: r.status, prioridade: r.priority, notas: full && r.notes ? cut(r.notes, 160) : undefined }; })
     };
     if (full) {
       o.gdd = {}; Object.keys(GDD_FIELDS).forEach(function (k) { o.gdd[k] = cut(p.gdd[k], lim); });
@@ -172,7 +174,14 @@
     { name: 'criar_marco', write: true, description: 'Propõe um novo marco de produção (meta maior, com prazo opcional).', parameters: { type: 'object', properties: { jogo_id: gameArg, titulo: { type: 'string' }, prazo: { type: 'string', description: 'data AAAA-MM-DD (opcional)' } }, required: ['titulo'] } },
     { name: 'criar_marco_com_tarefas', write: true, description: 'Propõe um marco já com tarefas novas ligadas a ele e/ou ligando tarefas existentes.', parameters: { type: 'object', properties: { jogo_id: gameArg, titulo: { type: 'string' }, prazo: { type: 'string', description: 'AAAA-MM-DD (opcional)' },
       tarefas: { type: 'array', description: 'tarefas novas do marco', items: { type: 'object', properties: { titulo: { type: 'string' }, notas: { type: 'string' }, coluna: colArg }, required: ['titulo'] } },
-      ligar_tarefas: { type: 'array', description: 'ids ou títulos de tarefas existentes para ligar ao marco', items: { type: 'string' } } }, required: ['titulo'] } }
+      ligar_tarefas: { type: 'array', description: 'ids ou títulos de tarefas existentes para ligar ao marco', items: { type: 'string' } } }, required: ['titulo'] } },
+    { name: 'criar_efeito', write: true, description: 'Propõe um efeito especial (VFX) na seção Recursos do jogo, já com uma configuração de partículas a partir de um modelo.', parameters: { type: 'object', properties: { jogo_id: gameArg, nome: { type: 'string' },
+      tipo: { type: 'string', enum: ['particulas', 'explosao', 'fumaca', 'fogo', 'brilho', 'impacto', 'clima', 'magia', 'outro'] }, modelo: { type: 'string', enum: ['explosao', 'fogo', 'fumaca', 'faiscas', 'chuva', 'cura', 'neve', 'magia'], description: 'modelo de partículas mais parecido' },
+      gatilho: { type: 'string', description: 'quando acontece no jogo' }, cores: { type: 'array', items: { type: 'string' }, description: '1 ou 2 cores em hexadecimal, ex.: #ffcc00' }, duracao: { type: 'number', description: 'segundos' },
+      intensidade: { type: 'string', enum: ['baixa', 'media', 'alta'] }, mecanica: { type: 'string', description: 'nome de uma mecânica existente (opcional)' }, notas: { type: 'string' } }, required: ['nome'] } },
+    { name: 'criar_recurso', write: true, description: 'Propõe um item na lista de Recursos do jogo: sons e música, sprites/arte/3D, animações, itens, UI/HUD ou diálogos/história.', parameters: { type: 'object', properties: { jogo_id: gameArg,
+      categoria: { type: 'string', enum: ['sons', 'arte', 'animacoes', 'itens', 'ui', 'dialogos'] }, nome: { type: 'string' }, subtipo: { type: 'string', description: 'ex.: SFX, Música, Sprite, Modelo 3D, HUD, Menu, Cutscene' },
+      prioridade: { type: 'string', enum: ['alta', 'media', 'baixa'] }, notas: { type: 'string' } }, required: ['categoria', 'nome'] } }
   ];
   var TOOL_BY = {}; TOOLS.forEach(function (t) { TOOL_BY[t.name] = t; });
   function toolsPayload() { return TOOLS.map(function (t) { return { type: 'function', 'function': { name: t.name, description: t.description, parameters: t.parameters } }; }); }
@@ -205,6 +214,8 @@
       p.levels.forEach(function (l) { hit('nível', l.id, l.name + ' — ' + (l.purpose || '')); });
       p.ideas.forEach(function (i) { hit('ideia', i.id, i.text); });
       p.assets.forEach(function (a) { hit('asset', a.id, a.name + ' ' + (a.type || '')); });
+      (p.effects || []).forEach(function (e) { hit('efeito', e.id, e.name + ' ' + (e.trigger || '') + ' ' + (e.notes || '')); });
+      (p.resources || []).forEach(function (r) { hit('recurso (' + r.kind + ')', r.id, r.name + ' ' + (r.notes || '')); });
       Object.keys(GDD_FIELDS).forEach(function (k) { if (fold(p.gdd[k]).indexOf(n) >= 0 && out.length < 30) { var t = String(p.gdd[k]), i = fold(t).indexOf(n); out.push({ jogo_id: p.id, jogo: p.title, tipo: 'GDD: ' + GDD_FIELDS[k], texto: '…' + t.slice(Math.max(0, i - 60), i + 100) + '…' }); } });
     });
     return { busca: q, resultados: out, total: out.length };
@@ -246,8 +257,9 @@
     return 'Lendo o jogo' + (p ? ' “' + p.title + '”' : '');
   }
 
-  var TITLES = { criar_tarefa: 'Nova tarefa', atualizar_tarefa: 'Editar tarefa', mover_tarefa: 'Mover tarefa', criar_ideia: 'Nova ideia', criar_mecanica: 'Nova mecânica', criar_personagem: 'Novo personagem', atualizar_gdd: 'Atualizar GDD', criar_marco: 'Novo marco', criar_marco_com_tarefas: 'Novo marco com tarefas' };
-  var ICON_OF = { criar_tarefa: 'tarefa', atualizar_tarefa: 'edit', mover_tarefa: 'producao', criar_ideia: 'ideias', criar_mecanica: 'mecanicas', criar_personagem: 'personagens', atualizar_gdd: 'design', criar_marco: 'flag', criar_marco_com_tarefas: 'flag' };
+  var CAT_NAMES = { sons: 'Sons e música', arte: 'Sprites, arte e 3D', animacoes: 'Animações', itens: 'Itens', ui: 'UI e HUD', dialogos: 'Diálogos e história' };
+  var TITLES = { criar_efeito: 'Novo efeito especial', criar_recurso: 'Novo recurso', criar_tarefa: 'Nova tarefa', atualizar_tarefa: 'Editar tarefa', mover_tarefa: 'Mover tarefa', criar_ideia: 'Nova ideia', criar_mecanica: 'Nova mecânica', criar_personagem: 'Novo personagem', atualizar_gdd: 'Atualizar GDD', criar_marco: 'Novo marco', criar_marco_com_tarefas: 'Novo marco com tarefas' };
+  var ICON_OF = { criar_efeito: 'efeito', criar_recurso: 'recursos', criar_tarefa: 'tarefa', atualizar_tarefa: 'edit', mover_tarefa: 'producao', criar_ideia: 'ideias', criar_mecanica: 'mecanicas', criar_personagem: 'personagens', atualizar_gdd: 'design', criar_marco: 'flag', criar_marco_com_tarefas: 'flag' };
   var PRIO = { alta: 'Alta', media: 'Média', baixa: 'Baixa' };
   // descreve a ação para o cartão
   function describe(a) {
@@ -260,6 +272,8 @@
     else if (a.tool === 'criar_personagem') { main = g.nome; rows.push(['Nome', g.nome]); if (g.papel) rows.push(['Papel', g.papel]); if (g.habilidades) rows.push(['Habilidades', g.habilidades]); }
     else if (a.tool === 'atualizar_gdd') { main = GDD_FIELDS[g.campo] || g.campo; rows.push(['Campo', GDD_FIELDS[g.campo] || g.campo]); rows.push(['Modo', g.modo === 'substituir' ? 'Substituir o texto' : 'Acrescentar ao fim']); rows.push(['Texto', g.texto]); }
     else if (a.tool === 'criar_marco') { main = g.titulo; rows.push(['Marco', g.titulo]); if (g.prazo) rows.push(['Prazo', g.prazo]); }
+    else if (a.tool === 'criar_efeito') { main = g.nome; rows.push(['Efeito', g.nome]); if (g.tipo) rows.push(['Tipo', g.tipo]); if (g.modelo) rows.push(['Modelo', g.modelo]); if (g.gatilho) rows.push(['Gatilho', g.gatilho]); if (Array.isArray(g.cores) && g.cores.length) rows.push(['Cores', g.cores.join(', ')]); if (g.duracao) rows.push(['Duração', g.duracao + ' s']); if (g.mecanica) rows.push(['Mecânica', g.mecanica]); if (g.notas) rows.push(['Notas', g.notas]); }
+    else if (a.tool === 'criar_recurso') { main = g.nome; rows.push(['Categoria', CAT_NAMES[g.categoria] || g.categoria]); rows.push(['Nome', g.nome]); if (g.subtipo) rows.push(['Tipo', g.subtipo]); if (g.prioridade) rows.push(['Prioridade', PRIO[g.prioridade] || g.prioridade]); if (g.notas) rows.push(['Notas', g.notas]); }
     else if (a.tool === 'criar_marco_com_tarefas') {
       var nt = Array.isArray(g.tarefas) ? g.tarefas : [], lk = Array.isArray(g.ligar_tarefas) ? g.ligar_tarefas : [];
       main = g.titulo + ' (' + (nt.length + lk.length) + ' tarefas)'; rows.push(['Marco', g.titulo]); if (g.prazo) rows.push(['Prazo', g.prazo]);
@@ -327,6 +341,21 @@
         }
         break;
       }
+      case 'criar_efeito': {
+        if (!s(g.nome)) throw new Error('Efeito sem nome.');
+        var R = window.PranchetaRecursos; if (!R) throw new Error('Recursos indisponíveis.');
+        var fx = R.makeEffect({ name: s(g.nome), type: g.tipo, preset: g.modelo, trigger: s(g.gatilho), colors: g.cores, duration: g.duracao, intensity: g.intensidade, mechanic: s(g.mecanica), notes: s(g.notas) });
+        if (!p.effects) p.effects = [];
+        p.effects.unshift(fx); ops.push({ remove: 'effects', id: fx.id }); break;
+      }
+      case 'criar_recurso': {
+        if (!s(g.nome)) throw new Error('Recurso sem nome.');
+        if (!CAT_NAMES[g.categoria]) throw new Error('Categoria de recurso inválida.');
+        var R2 = window.PranchetaRecursos; if (!R2) throw new Error('Recursos indisponíveis.');
+        var rs = R2.makeResource({ kind: g.categoria, name: s(g.nome), sub: s(g.subtipo), priority: g.prioridade, notes: s(g.notas) });
+        if (!p.resources) p.resources = [];
+        p.resources.push(rs); ops.push({ remove: 'resources', id: rs.id }); break;
+      }
       default: throw new Error('Ação desconhecida.');
     }
     api.touch(p); api.refreshSide();
@@ -358,7 +387,7 @@
       '- Antes de opinar sobre um jogo, leia os dados dele. Baseie-se só no que está registrado.',
       '- Nunca apresente como decidido algo que não está nos dados. Quando for ideia sua, deixe claro que é sugestão (por exemplo, comece com "Sugestão:").',
       '- Não invente história, lore ou fatos sobre os jogos existentes. Se faltar informação, pergunte.',
-      '- Para mudar dados (criar tarefa, mover tarefa, criar ideia, mecânica, personagem, marco ou escrever no GDD), proponha a ação. Cada ação vira um cartão que o usuário confirma com "Aplicar". Nunca diga que já aplicou: diga que propôs.',
+      '- Para mudar dados (criar tarefa, mover tarefa, criar ideia, mecânica, personagem, marco, efeito especial, recurso do jogo ou escrever no GDD), proponha a ação. Cada ação vira um cartão que o usuário confirma com "Aplicar". Nunca diga que já aplicou: diga que propôs.',
       '- Você é um agente: pode chamar várias ferramentas em sequência (até ' + MAX_STEPS + ' passos por pedido). Leia antes de propor (ler_jogo, buscar, resumo_progresso).',
       '- Para um objetivo grande: 1) leia o necessário; 2) escreva um plano curto e numerado; 3) proponha as mudanças de uma vez (várias chamadas na mesma resposta viram um lote para o usuário revisar); 4) termine com um resumo curto do que propôs.',
       '- Proponha no máximo 12 ações por pedido e não repita propostas já feitas. Prefira criar_marco_com_tarefas quando várias tarefas formam uma meta.',
@@ -477,6 +506,33 @@
     }
     return go();
   }
+  // chamada simples (sem streaming) a um provedor qualquer; usada pela Equipe de IAs
+  function completeOnce(pv, messages, signal, onRetry) {
+    var attempt = 0;
+    function go() {
+      return fetch(pv.baseUrl + '/chat/completions', { method: 'POST', headers: authHeaders(pv), body: JSON.stringify({ model: pv.model, messages: messages }), signal: signal, cache: 'no-store' })
+        .then(function (res) {
+          return res.text().then(function (t) {
+            if (!res.ok) {
+              var e = httpError(res, t, pv.id);
+              if (res.status === 429 && attempt < 2) {
+                var sec = Math.min(Math.max(e.retryAfter || [5, 15][attempt], 1), 40);
+                attempt++; if (onRetry) onRetry(sec, attempt);
+                return wait(sec * 1000, signal).then(go);
+              }
+              throw e;
+            }
+            var j; try { j = JSON.parse(t); } catch (er) { j = null; }
+            var m = j && j.choices && j.choices[0] && j.choices[0].message;
+            var c = m && m.content;
+            if (Array.isArray(c)) c = c.map(function (x) { return x && (x.text || '') || ''; }).join('');
+            if (!c) { var ee = new Error('A IA respondeu vazio.'); ee.kind = 'empty'; throw ee; }
+            return String(c);
+          });
+        }, function (e) { if (e && e.name === 'AbortError') throw e; throw netFail(pv); });
+    }
+    return go();
+  }
   function mergeToolDelta(list, d) {
     var i = typeof d.index === 'number' ? d.index : list.length;
     var cur = list[i] || (list[i] = { id: '', type: 'function', 'function': { name: '', arguments: '' } });
@@ -529,7 +585,7 @@
   }
 
   // ---------------------------------------------------------------- conversa / agente
-  var NOUN = { criar_tarefa: ['tarefa', 'tarefas'], atualizar_tarefa: ['edição de tarefa', 'edições de tarefas'], mover_tarefa: ['movimento de tarefa', 'movimentos de tarefas'], criar_ideia: ['ideia', 'ideias'], criar_mecanica: ['mecânica', 'mecânicas'], criar_personagem: ['personagem', 'personagens'], atualizar_gdd: ['mudança no GDD', 'mudanças no GDD'], criar_marco: ['marco', 'marcos'], criar_marco_com_tarefas: ['marco com tarefas', 'marcos com tarefas'] };
+  var NOUN = { criar_efeito: ['efeito especial', 'efeitos especiais'], criar_recurso: ['recurso', 'recursos'], criar_tarefa: ['tarefa', 'tarefas'], atualizar_tarefa: ['edição de tarefa', 'edições de tarefas'], mover_tarefa: ['movimento de tarefa', 'movimentos de tarefas'], criar_ideia: ['ideia', 'ideias'], criar_mecanica: ['mecânica', 'mecânicas'], criar_personagem: ['personagem', 'personagens'], atualizar_gdd: ['mudança no GDD', 'mudanças no GDD'], criar_marco: ['marco', 'marcos'], criar_marco_com_tarefas: ['marco com tarefas', 'marcos com tarefas'] };
   function proposeLabel(actions) {
     var n = actions.length, same = actions.every(function (a) { return a.tool === actions[0].tool; });
     var w = same && NOUN[actions[0].tool] ? NOUN[actions[0].tool][n === 1 ? 0 : 1] : (n === 1 ? 'mudança' : 'mudanças');
@@ -721,6 +777,7 @@
         '<div class="ia-head-t"><div class="eyebrow">Assistente IA</div><h1>' + (p ? api.esc(title) : 'Assistente da Prancheta') + '</h1>' +
           '<button class="ia-chip-conn" type="button" data-ia="wizard" data-ia-chipconn></button></div>' +
         '<div class="ia-head-a">' +
+          (window.PranchetaEquipe ? '<a class="icon-btn" href="' + (p ? api.projHash(p, 'equipe') : '#/equipe') + '" aria-label="Equipe de IAs" title="Equipe de IAs (3 vagas)">' + I('equipe') + '</a>' : '') +
           (grok ? '<button class="icon-btn" type="button" data-ia="grok" aria-label="Falar com o Grok Bot" title="Falar com o Grok Bot">' + I('grok') + '</button>' : '') +
           '<button class="icon-btn" type="button" data-ia="config" aria-label="Configuração avançada da IA" title="Configuração avançada">' + I('config') + '</button>' +
           '<button class="icon-btn" type="button" data-ia="clear" aria-label="Limpar conversa" title="Limpar conversa">' + I('trash') + '</button>' +
@@ -1269,6 +1326,13 @@
     // usado só nos testes automatizados
     _md: md, _parseFallback: parseFallbackActions, _cfgKey: CFG_KEY, _chatKey: CHAT_KEY,
     _detect: detectProvider, _pick: pickModels, _explain: explain, _retryAfter: retryAfter,
-    openWizard: function () { openWizard(); }, ready: function () { return ready(); }
+    openWizard: function () { openWizard(); }, ready: function () { return ready(); },
+    // usado pela Equipe de IAs (assets/equipe.js)
+    team: {
+      presets: PRESETS, order: WIZ_ORDER, provider: function (id) { return prov(id); }, mainId: function () { return cfg.preset; }, ready: ready,
+      connect: connectProvider, saveMain: saveConnection, complete: completeOnce, cleanKey: cleanKey, detect: detectProvider,
+      describe: describe, apply: applyAction, undo: undoAction, md: md, summary: function (p) { return gameSummary(p, true); },
+      writeTools: function () { return TOOLS.filter(function (t) { return t.write; }); }, openConfig: function () { openConfig(); }
+    }
   };
 })();

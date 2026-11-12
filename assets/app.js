@@ -37,13 +37,24 @@
     stop: '<rect x="6" y="6" width="12" height="12" rx="2.5"/>',
     grok: '<path d="M4 5.5h16v10H9l-5 4z"/><path d="M9 9.5h6M9 12.5h3.5"/>',
     sync: '<path d="M20 7a8 8 0 0 0-14.6-1.5M4 3v4h4"/><path d="M4 17a8 8 0 0 0 14.6 1.5M20 21v-4h-4"/>',
-    olho: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>'
+    olho: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>',
+    recursos: '<path d="M12 3 3.5 7.5 12 12l8.5-4.5z"/><path d="m3.5 12 8.5 4.5 8.5-4.5M3.5 16.5 12 21l8.5-4.5"/>',
+    efeito: '<path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4M5.3 5.3l2.8 2.8M15.9 15.9l2.8 2.8M5.3 18.7l2.8-2.8M15.9 8.1l2.8-2.8"/><circle cx="12" cy="12" r="2.2"/>',
+    som: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>',
+    animacao: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M7 5v14M17 5v14M3 9.5h4M3 14.5h4M17 9.5h4M17 14.5h4"/><path d="m10.5 10 3.5 2-3.5 2z"/>',
+    item: '<path d="M20 8 12 3.5 4 8v8l8 4.5 8-4.5z"/><path d="m4 8 8 4.5L20 8M12 12.5v8"/>',
+    hud: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M6.5 8h5M6.5 11h3"/><circle cx="16.5" cy="15.5" r="1.6"/><path d="M14 8h3.5"/>',
+    dialogo: '<path d="M4 5.5h11v8H8.5L5 16.5v-3H4z"/><path d="M15 9h5v8h-1.5v3l-3.5-3H11v-3.5"/>',
+    checklist: '<path d="m4 6.5 1.6 1.6L8.5 5M4 12.5l1.6 1.6 2.9-3.1M4 18.5l1.6 1.6 2.9-3.1"/><path d="M11.5 7h8.5M11.5 13h8.5M11.5 19h8.5"/>',
+    link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+    play: '<path d="M7 5v14l11.5-7z"/>',
+    equipe: '<circle cx="12" cy="6.5" r="2.6"/><circle cx="5.5" cy="16.5" r="2.4"/><circle cx="18.5" cy="16.5" r="2.4"/><path d="M12 9.1v3.4M12 12.5 7.4 15M12 12.5l4.6 2.5"/>'
   };
   function icon(n, cls) { return '<svg class="i ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[n] || '') + '</svg>'; }
 
   // rótulos curtos para a barra de baixo do celular
-  var SHORT = { geral: 'Geral', design: 'Design', mecanicas: 'Mecânicas', personagens: 'Personagens', mundo: 'Mundo', arte: 'Arte', tecnica: 'Técnica', producao: 'Produção', ideias: 'Ideias', ia: 'IA' };
-  var BNAV = ['geral', 'producao', 'ia', 'ideias'];
+  var SHORT = { geral: 'Geral', design: 'Design', mecanicas: 'Mecânicas', personagens: 'Personagens', mundo: 'Mundo', arte: 'Arte', recursos: 'Recursos', tecnica: 'Técnica', producao: 'Produção', ideias: 'Ideias', ia: 'IA', equipe: 'Equipe' };
+  var BNAV = ['geral', 'producao', 'recursos', 'ia'];
   function phaseKey(ph) { return ['conceito', 'pre', 'producao', 'polimento', 'lancamento'][PHASES.indexOf(ph)] || 'conceito'; }
   function phaseBadge(ph) { return '<span class="badge phase-badge" data-phase="' + phaseKey(ph) + '"><span class="dot"></span>' + esc(ph) + '</span>'; }
   function isNarrow() { return !!(window.matchMedia && window.matchMedia('(max-width: 820px)').matches); }
@@ -51,7 +62,7 @@
   var SECTIONS = [
     ['geral', 'Visão geral'], ['design', 'Caderno de design'], ['mecanicas', 'Mecânicas'],
     ['personagens', 'Personagens e criaturas'], ['mundo', 'Mundo e níveis'], ['arte', 'Arte e áudio'],
-    ['tecnica', 'Técnica'], ['producao', 'Produção'], ['ideias', 'Caixa de ideias'], ['ia', 'Assistente IA']
+    ['recursos', 'Recursos do jogo'], ['tecnica', 'Técnica'], ['producao', 'Produção'], ['ideias', 'Caixa de ideias'], ['ia', 'Assistente IA'], ['equipe', 'Equipe de IAs']
   ];
 
   // ---------------------------------------------------------------- utilidades
@@ -185,6 +196,7 @@
       art: { direction: '', style: '', references: '', audio: '' }, assets: [],
       tech: { exports: '', constraints: '', risks: '', notes: '' },
       tasks: [], milestones: [], ideas: [],
+      effects: [], resources: [],
       createdAt: t, updatedAt: t
     };
   }
@@ -193,6 +205,8 @@
     p = p && typeof p === 'object' ? p : {};
     var b = blankProject(p.title);
     var out = {};
+    // guarda também campos que esta versão não conhece (dados de uma versão mais nova não se perdem)
+    Object.keys(p).forEach(function (k) { if (b[k] === undefined && p[k] !== undefined) out[k] = p[k]; });
     Object.keys(b).forEach(function (k) { out[k] = p[k] !== undefined && p[k] !== null ? p[k] : b[k]; });
     ['gdd', 'art', 'tech'].forEach(function (k) {
       out[k] = Object.assign({}, b[k], (p[k] && typeof p[k] === 'object') ? p[k] : {});
@@ -210,6 +224,7 @@
     if (!out.id) out.id = uid();
     out.title = String(out.title || 'Sem título');
     out.archived = !!out.archived;
+    if (window.PranchetaRecursos) window.PranchetaRecursos.normalizeProject(out);
     return out;
   }
 
@@ -285,9 +300,11 @@
       if (!p) { location.hash = '#/'; return; }
       var sec = parts[2] || 'geral';
       if (!SECTIONS.some(function (s) { return s[0] === sec; })) sec = 'geral';
-      renderProject(p, sec);
+      renderProject(p, sec, parts[3] || '', parts[4] || '');
     } else if (parts[0] === 'ia' && window.PranchetaIA) {
       renderAssistantHome();
+    } else if (parts[0] === 'equipe' && window.PranchetaEquipe) {
+      renderTeamHome();
     } else {
       renderHome();
     }
@@ -305,6 +322,18 @@
     $('#crumbs').innerHTML = '<a href="#/">Todos os jogos</a><span class="sep">/</span><span class="cur">Assistente IA</span>';
     $('#main').innerHTML = '<div class="ia-page"><section class="content ia-content" id="content">' + window.PranchetaIA.html(null) + '</section></div>';
     window.PranchetaIA.mount($('#content'), null);
+    window.scrollTo(0, 0);
+  }
+
+  function renderTeamHome() {
+    current = { project: null, section: 'equipe' };
+    document.body.dataset.view = 'ia';
+    document.body.dataset.sec = 'equipe';
+    document.documentElement.style.removeProperty('--pc');
+    document.title = 'Equipe de IAs · Prancheta';
+    $('#crumbs').innerHTML = '<a href="#/">Todos os jogos</a><span class="sep">/</span><span class="cur">Equipe de IAs</span>';
+    $('#main').innerHTML = '<div class="ia-page eq-page"><section class="content eq-content" id="content">' + window.PranchetaEquipe.html(null) + '</section></div>';
+    window.PranchetaEquipe.mount($('#content'), null);
     window.scrollTo(0, 0);
   }
 
@@ -341,7 +370,10 @@
           '</div>' +
           (archived ? '<label class="toggle"><input type="checkbox" id="showArchived"' + (ui.showArchived ? ' checked' : '') + '> Mostrar arquivados (' + archived + ')</label>' : '') +
         '</div>' +
+        '<div class="banners">' +
         (window.PranchetaIA ? '<a class="ia-banner" href="#/ia"><span class="ia-banner-ic">' + icon('ia') + '</span><span class="ia-banner-t"><b>Assistente IA</b><small>Peça ideias, revise o GDD e crie tarefas conversando.</small></span>' + icon('right') + '</a>' : '') +
+        (window.PranchetaEquipe ? '<a class="ia-banner eq-banner" href="#/equipe"><span class="ia-banner-ic">' + icon('equipe') + '</span><span class="ia-banner-t"><b>Equipe de IAs</b><small>3 vagas: um coordenador divide o trabalho entre as outras IAs.</small></span>' + icon('right') + '</a>' : '') +
+        '</div>' +
         '<div id="homeGrid"></div>' +
       '</div>';
     renderGrid();
@@ -410,9 +442,9 @@
   }
 
   // ---------------------------------------------------------------- projeto
-  function renderProject(p, sec) {
-    var changed = current.project !== p.id || current.section !== sec;
-    current = { project: p.id, section: sec };
+  function renderProject(p, sec, sub, sub2) {
+    var changed = current.project !== p.id || current.section !== sec || current.sub !== (sub || '') || current.sub2 !== (sub2 || '');
+    current = { project: p.id, section: sec, sub: sub || '', sub2: sub2 || '' };
     document.body.dataset.view = 'project';
     document.body.dataset.sec = sec;
     document.documentElement.style.setProperty('--pc', p.color);
@@ -420,8 +452,9 @@
     document.title = p.title + ' · ' + secName + ' · Prancheta';
     $('#crumbs').innerHTML = '<a href="#/">Todos os jogos</a><span class="sep">/</span><a href="' + projHash(p) + '" id="crumbTitle">' + esc(p.title) + '</a><span class="sep">/</span><span class="cur">' + esc(secName) + '</span>';
     $('#main').innerHTML = '<div class="proj"><aside class="side" aria-label="Seções do jogo">' + sideHtml(p, sec) + '</aside>' +
-      '<section class="content' + (sec === 'ia' ? ' ia-content' : '') + '" id="content">' + sectionHtml(p, sec) + '</section></div>';
+      '<section class="content' + (sec === 'ia' ? ' ia-content' : sec === 'equipe' ? ' eq-content' : '') + '" id="content">' + sectionHtml(p, sec) + '</section></div>';
     if (sec === 'ia' && window.PranchetaIA) window.PranchetaIA.mount($('#content'), p);
+    mountSection(p, sec);
     autosizeAll($('#main'));
     if (changed) window.scrollTo(0, 0);
     centerNav();
@@ -437,7 +470,11 @@
   function counts(p) {
     var s = stats(p);
     return { geral: '', design: '', mecanicas: p.mechanics.length, personagens: p.characters.length, mundo: p.levels.length,
-      arte: p.assets.length, tecnica: '', producao: s.total - s.done, ideias: p.ideas.length };
+      arte: p.assets.length, recursos: window.PranchetaRecursos ? window.PranchetaRecursos.count(p) : 0, tecnica: '', producao: s.total - s.done, ideias: p.ideas.length };
+  }
+  function mountSection(p, sec) {
+    if (sec === 'recursos' && window.PranchetaRecursos) window.PranchetaRecursos.mount($('#content'), p, current.sub, current.sub2);
+    if (sec === 'equipe' && window.PranchetaEquipe) window.PranchetaEquipe.mount($('#content'), p);
   }
 
   function sideHtml(p, sec) {
@@ -487,11 +524,13 @@
     openDialog('<div class="dlg sheet"><h2 id="dialogTitle">Adicionar em “' + esc(p.title) + '”</h2><div class="sheet-list">' +
       '<button class="sheet-item" data-dlg="task">' + icon('tarefa') + '<span><b>Nova tarefa</b><small>Entra em “A fazer”, na Produção</small></span></button>' +
       '<button class="sheet-item" data-dlg="idea">' + icon('ideias') + '<span><b>Nova ideia</b><small>Vai para a Caixa de ideias</small></span></button>' +
+      (window.PranchetaRecursos ? '<button class="sheet-item" data-dlg="fx">' + icon('efeito') + '<span><b>Novo efeito especial</b><small>Abre o editor de partículas</small></span></button>' : '') +
       '<button class="sheet-item" data-dlg="game">' + icon('jogo') + '<span><b>Novo jogo</b><small>Começar outro projeto do zero</small></span></button>' +
       '</div><div class="dlg-actions"><button class="btn ghost" data-dlg="cancel">Cancelar</button></div></div>')
       .then(function (r) {
         if (!r || !r.action) return;
         if (r.action === 'game') { newProject(); return; }
+        if (r.action === 'fx') { var fx = window.PranchetaRecursos.makeEffect({ preset: 'explosao', name: 'Novo efeito' }); p.effects.unshift(fx); touch(p); go(projHash(p, 'recursos') + '/efeitos/' + encodeURIComponent(fx.id)); return; }
         var isTask = r.action === 'task';
         promptDialog(isTask ? 'Nova tarefa' : 'Nova ideia', isTask ? 'Tarefa' : 'Ideia', '', isTask ? 'Adicionar tarefa' : 'Guardar ideia').then(function (v) {
           if (!v) return;
@@ -549,6 +588,8 @@
       case 'producao': return secProduction(p);
       case 'ideias': return secIdeas(p);
       case 'ia': return window.PranchetaIA ? window.PranchetaIA.html(p) : emptyMsg('O assistente não carregou. Recarregue a página.', 'ia');
+      case 'recursos': return window.PranchetaRecursos ? window.PranchetaRecursos.html(p, current.sub, current.sub2) : emptyMsg('Os recursos não carregaram. Recarregue a página.', 'recursos');
+      case 'equipe': return window.PranchetaEquipe ? window.PranchetaEquipe.html(p) : emptyMsg('A equipe de IAs não carregou. Recarregue a página.', 'equipe');
       default: return secOverview(p);
     }
   }
@@ -826,7 +867,8 @@
     var t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status');
     t.innerHTML = '<span>' + esc(msg) + '</span>' + (actionLabel ? '<button type="button">' + esc(actionLabel) + '</button>' : '');
     if (actionLabel) t.querySelector('button').onclick = function () { action(); t.remove(); };
-    $('#toasts').appendChild(t);
+    var box = $('#toasts'); box.appendChild(t);
+    while (box.children.length > 3) box.removeChild(box.firstChild); // no celular, no máximo 3 avisos empilhados
     setTimeout(function () { t.classList.add('out'); setTimeout(function () { t.remove(); }, 260); }, ms || (actionLabel ? 7000 : 3200));
   }
 
@@ -938,6 +980,7 @@
     else if (kind === 'milestones') p.milestones.push({ id: uid(), title: name, due: (form && form.elements.due && form.elements.due.value) || '', done: false });
     else if (kind === 'tasks') p.tasks.push({ id: uid(), title: name, notes: '', col: (form && form.dataset.col) || 'todo', milestoneId: '', createdAt: t });
     else if (kind === 'ideas') p.ideas.push({ id: uid(), text: name, createdAt: t });
+    else if (kind === 'resources' && window.PranchetaRecursos) p.resources.push(window.PranchetaRecursos.makeResource({ kind: form && form.dataset.kind, name: name }));
     else return false;
     touch(p);
     return true;
@@ -946,8 +989,9 @@
   function rerender(focusSel) {
     var p = curP(); if (!p) return;
     var y = window.scrollY;
-    if (current.section === 'ia') { refreshSide(); return; }
+    if (current.section === 'ia' || current.section === 'equipe') { refreshSide(); return; }
     $('#content').innerHTML = sectionHtml(p, current.section);
+    mountSection(p, current.section);
     autosizeAll($('#content'));
     refreshSide();
     window.scrollTo(0, y);
@@ -1142,7 +1186,7 @@
       var item = p[row.dataset.list].filter(function (x) { return x.id === row.dataset.id; })[0];
       if (!item) return;
       item[t.dataset.field] = t.type === 'checkbox' ? t.checked : t.value;
-      if (t.classList.contains('status')) t.dataset.v = t.value;
+      if (t.classList.contains('status') || t.classList.contains('prio')) t.dataset.v = t.value;
       touch(p);
       if ((t.dataset.field === 'status' && (ui.mechFilter || ui.assetFilter)) || row.dataset.list === 'milestones' || row.dataset.list === 'assets') {
         rerender('[data-id="' + row.dataset.id + '"] [data-field="' + t.dataset.field + '"]');
@@ -1212,6 +1256,14 @@
     esc: esc, icon: icon, go: go, projHash: projHash, uid: uid, now: now, stats: stats, engineLabel: engineLabel,
     moveTask: moveTask, isNarrow: isNarrow, autosize: autosize, COLS: COLS, PHASES: PHASES, MECH_STATUS: MECH_STATUS, ART_STATUS: ART_STATUS
   });
+  var shared = {
+    state: function () { return state; }, getProject: getProject, curP: curP, current: function () { return current; },
+    touch: touch, persist: persist, refreshSide: refreshSide, rerender: function () { rerender(); }, toast: toast, openDialog: openDialog, confirmDialog: confirmDialog,
+    esc: esc, icon: icon, go: go, projHash: projHash, uid: uid, now: now, stats: stats, engineLabel: engineLabel, isNarrow: isNarrow,
+    ART_STATUS: ART_STATUS, MECH_STATUS: MECH_STATUS
+  };
+  if (window.PranchetaRecursos) window.PranchetaRecursos.init(shared);
+  if (window.PranchetaEquipe) window.PranchetaEquipe.init(shared);
   if (window.PranchetaSync) window.PranchetaSync.init({
     state: function () { return state; }, current: curP, toast: toast, openDialog: openDialog, esc: esc, icon: icon,
     setProjects: function (arr) { state.projects = arr.map(normalize); persist(); route(); }
@@ -1259,5 +1311,5 @@
   }
 
   // gancho de leitura usado só no teste automatizado
-  window.__prancheta = { state: function () { return state; }, KEY: KEY, parseBackup: parseBackup, touch: touch, sampleProjects: sampleProjects };
+  window.__prancheta = { state: function () { return state; }, KEY: KEY, parseBackup: parseBackup, touch: touch, sampleProjects: sampleProjects, normalize: normalize };
 })();

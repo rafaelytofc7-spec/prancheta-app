@@ -3,8 +3,11 @@ PRANCHETA · Planejamento de jogos
 
 App local e offline para planejar seus jogos: visão geral, caderno de
 design (GDD), mecânicas, personagens e criaturas, mundo e níveis, arte e
-áudio, técnica, produção (quadro de tarefas + marcos) e caixa de ideias.
+áudio, recursos do jogo (efeitos especiais, sons, sprites, animações,
+itens, fases, UI e diálogos), técnica, produção (quadro de tarefas +
+marcos), caixa de ideias, Assistente IA e Equipe de IAs.
 Não precisa de internet, conta, servidor nem instalação.
+Versão 1.4.0.
 
 COMO ABRIR
 - Windows: dê dois cliques em "Abrir no Windows.bat"
@@ -24,7 +27,7 @@ INSTALAR NO ANDROID (APP PELO NAVEGADOR)
 - O ícone aparece na tela inicial, abre em tela cheia e funciona sem
   internet depois da primeira abertura.
 - No celular, as seções principais ficam numa barra embaixo da tela (o
-  resto em "Mais"), o botão "+" adiciona jogo, tarefa ou ideia, e o quadro
+  resto em "Mais"), o botão "+" adiciona jogo, tarefa, ideia ou efeito, e o quadro
   de Produção mostra uma coluna por vez (abas A fazer / Em andamento /
   Feito). As tarefas mudam de coluna pelos botões do cartão.
 - Quando sair uma versão nova, o app avisa "Nova versão disponível":
@@ -51,9 +54,34 @@ ASSISTENTE IA
   Zero"). Ele lê o jogo, planeja em até 8 passos e entrega um lote de
   mudanças com caixas de seleção: "Aplicar selecionados" (dá para
   "Desfazer"). Ele nunca apaga nada.
-- Privacidade: a chave fica só neste aparelho/navegador e NÃO vai para o
+- Privacidade: a chave (e as da Equipe de IAs) fica só neste aparelho/navegador e NÃO vai para o
   backup nem para o GitHub. As mensagens e os dados do jogo que a IA lê são
   enviados ao provedor escolhido. Precisa de internet (menos o Ollama).
+
+RECURSOS DO JOGO (NOVO NA 1.4)
+- Seção "Recursos" em cada jogo: visão geral com % pronto, progresso por
+  categoria e a lista "O que falta" (por prioridade).
+- Efeitos especiais: nome, tipo, gatilho, cores, duração, intensidade,
+  notas, mecânica/fase ligada e estado. Editor de partículas ao vivo com
+  modelos prontos (explosão, fogo, fumaça, faíscas, chuva, cura, neve,
+  magia). Exporta JSON e cena do Godot 4 (.tscn com GPUParticles2D).
+- Listas de Sons, Sprites/arte/3D, Animações, Itens, UI/HUD e Diálogos,
+  cada item com estado (ideia/fazendo/pronto), prioridade, notas e link
+  ou arquivo. Personagens e Fases usam as mesmas listas de antes.
+- Os dados antigos não mudam; efeitos e recursos entram no backup e na
+  sincronização. Atualize o app em todos os aparelhos que sincronizam.
+
+EQUIPE DE IAS (NOVO NA 1.4)
+- Seção "Equipe" com 3 vagas de API. Vaga 1 = Coordenador (por padrão a
+  mesma IA do Assistente); vagas 2 e 3 = especialistas (função editável).
+  Cada vaga tem provedor, chave, modelo e endereço próprios e um botão
+  "Testar".
+- Você dá um objetivo; o Coordenador monta um plano em JSON (aparece na
+  tela), as vagas trabalham em paralelo (com linha do tempo de quem faz o
+  quê) e o Coordenador junta tudo num lote de propostas. Nada é aplicado
+  sem você ("Aplicar selecionados", com "Desfazer").
+- Vaga vazia: o Coordenador faz a parte dela. Vaga com erro: o erro
+  aparece e o Coordenador assume. As chaves ficam só neste aparelho.
 
 SINCRONIZAR COM GITHUB E GROK BOT
 - "Dados e backup" > "Sincronizar com GitHub..." guarda os jogos no
